@@ -11,9 +11,12 @@
 - Added synthetic-only tests for schema errors, duplicates, missing evidence, source IDs,
   annotation spans, manifest determinism, role boundaries, integrity, persistence, and reports.
 
-**Next concrete step:** write the overlap/reference/final-test protocol described in
-`source_review.md`, review the identified IDs, and create a new versioned eligible manifest
-without rewriting this source snapshot. Then start Phase 2.
+**Protocol update:** `techqa-internal-v1` resolves overlap, reference handling, and the
+internal final-holdout design in `protocol-v1.md`. Eligible manifests are frozen separately;
+Phase 2 training/validation access is ready and final-holdout access remains sealed.
+
+**Next concrete step:** implement the Phase 2 common inference interface and base/few-shot
+strategies, loading only eligible training/validation data through the guarded access layer.
 
 ## Remaining phases
 

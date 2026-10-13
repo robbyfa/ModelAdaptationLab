@@ -67,7 +67,19 @@ def verify(directory: Path) -> dict[str, Any]:
         lock = json.loads((directory / "freeze.json").read_text())
         if set(lock["files"]) != {"train.jsonl", "validation.jsonl", "test.jsonl"}:
             raise LabError("Unexpected manifest file set")
-        for name, expected in lock["files"].items():
+        if lock.get("schema_version") == 2:
+            if set(lock.get("artifacts", {})) != {
+                "protocol.json",
+                "decisions.json",
+                "summary.json",
+                "corpus.json",
+            }:
+                raise LabError("Incomplete versioned protocol artifact set")
+            if lock.get("final_test_access") != "sealed_until_phase5":
+                raise LabError("Versioned final-test seal is missing or unsupported")
+        for name, expected in (lock["files"] | lock.get("artifacts", {})).items():
+            if Path(name).name != name:
+                raise LabError("Manifest artifact must use a plain filename")
             if file_hash(directory / name) != expected:
                 raise LabError(f"Frozen manifest hash mismatch: {name}")
         return dict(lock)
@@ -87,6 +99,8 @@ def load_split(directory: Path, split: str, *, purpose: str) -> list[dict[str, A
     lock = verify(directory)
     if split == "test" and not lock["final_test_ready"]:
         raise LabError("Final test protocol is pending; an empty manifest is not an evaluation set")
+    if split == "test" and lock.get("final_test_access") == "sealed_until_phase5":
+        raise LabError("Final test is sealed until Phase 5 preregistration and release")
     if not lock.get("experimental_use_ready", False):
         raise LabError(f"Experimental use blocked: {lock.get('experimental_use_blockers')}")
     return [json.loads(line) for line in (directory / f"{split}.jsonl").read_text().splitlines()]

@@ -1,0 +1,319 @@
+{
+  "cross_split_components": 0,
+  "eligible_rows": 809,
+  "excluded_rows": 101,
+  "exclusion_reason_counts_nonexclusive": {
+    "component_touches_development": 67,
+    "conflicting_exact_question": 48,
+    "duplicate_exact_question": 4,
+    "quarantine_empty_reference": 2,
+    "quarantine_reference_span_disagreement": 7
+  },
+  "final_test_description": "audit-exposed internal holdout from official training; not official test, not independently collected, not untouched",
+  "group_strata": {
+    "answerable": {
+      "groups": 355,
+      "test_groups": 71
+    },
+    "mixed": {
+      "groups": 4,
+      "test_groups": 1
+    },
+    "unanswerable": {
+      "groups": 131,
+      "test_groups": 26
+    }
+  },
+  "protocol_id": "techqa-internal-v1",
+  "reference_actions": {
+    "corrected_whitespace_only": 2,
+    "quarantine_empty_reference": 2,
+    "quarantine_reference_span_disagreement": 7,
+    "unchanged": 899
+  },
+  "remaining_overlap": {
+    "exact_question_groups": [],
+    "identical_normalized_answer_groups": [
+      [
+        "original:train:TRAIN_Q073",
+        "original:train:TRAIN_Q252"
+      ],
+      [
+        "original:train:TRAIN_Q030",
+        "original:train:TRAIN_Q068",
+        "original:train:TRAIN_Q357"
+      ],
+      [
+        "original:train:TRAIN_Q338",
+        "original:train:TRAIN_Q413"
+      ],
+      [
+        "original:train:TRAIN_Q058",
+        "original:train:TRAIN_Q124"
+      ],
+      [
+        "original:validation:DEV_Q175",
+        "original:validation:DEV_Q176"
+      ],
+      [
+        "original:train:TRAIN_Q017",
+        "original:train:TRAIN_Q562"
+      ],
+      [
+        "original:test:TRAIN_Q226",
+        "original:test:TRAIN_Q296"
+      ],
+      [
+        "original:test:TRAIN_Q104",
+        "original:test:TRAIN_Q123"
+      ],
+      [
+        "original:train:TRAIN_Q266",
+        "original:train:TRAIN_Q446"
+      ],
+      [
+        "original:train:TRAIN_Q101",
+        "original:train:TRAIN_Q517"
+      ],
+      [
+        "original:validation:DEV_Q077",
+        "original:validation:DEV_Q283"
+      ],
+      [
+        "original:test:TRAIN_Q080",
+        "original:test:TRAIN_Q109"
+      ],
+      [
+        "original:test:TRAIN_Q108",
+        "original:test:TRAIN_Q362",
+        "original:test:TRAIN_Q442"
+      ],
+      [
+        "original:test:TRAIN_Q139",
+        "original:test:TRAIN_Q359"
+      ],
+      [
+        "original:train:TRAIN_Q049",
+        "original:train:TRAIN_Q584"
+      ]
+    ],
+    "limitations": "Heuristic only: misses semantic paraphrases; flags require review.",
+    "near_duplicate_method": "NFKC + casefold + word-set Jaccard, exhaustive pairs",
+    "near_duplicate_threshold": 0.85,
+    "near_question_pairs": [
+      {
+        "cross_split": false,
+        "left": "original:validation:DEV_Q020",
+        "right": "original:validation:DEV_Q170",
+        "score": 0.875
+      },
+      {
+        "cross_split": false,
+        "left": "original:validation:DEV_Q036",
+        "right": "original:validation:DEV_Q240",
+        "score": 0.857143
+      },
+      {
+        "cross_split": false,
+        "left": "original:validation:DEV_Q037",
+        "right": "original:validation:DEV_Q066",
+        "score": 0.875
+      },
+      {
+        "cross_split": false,
+        "left": "original:validation:DEV_Q037",
+        "right": "original:validation:DEV_Q222",
+        "score": 0.863636
+      },
+      {
+        "cross_split": false,
+        "left": "original:validation:DEV_Q055",
+        "right": "original:validation:DEV_Q262",
+        "score": 0.894737
+      },
+      {
+        "cross_split": false,
+        "left": "original:validation:DEV_Q057",
+        "right": "original:validation:DEV_Q222",
+        "score": 0.875
+      },
+      {
+        "cross_split": false,
+        "left": "original:validation:DEV_Q070",
+        "right": "original:validation:DEV_Q115",
+        "score": 0.903226
+      },
+      {
+        "cross_split": false,
+        "left": "original:validation:DEV_Q112",
+        "right": "original:validation:DEV_Q206",
+        "score": 0.914286
+      },
+      {
+        "cross_split": false,
+        "left": "original:validation:DEV_Q175",
+        "right": "original:validation:DEV_Q176",
+        "score": 1.0
+      },
+      {
+        "cross_split": false,
+        "left": "original:train:TRAIN_Q017",
+        "right": "original:train:TRAIN_Q562",
+        "score": 0.909091
+      },
+      {
+        "cross_split": false,
+        "left": "original:train:TRAIN_Q029",
+        "right": "original:train:TRAIN_Q490",
+        "score": 0.968254
+      },
+      {
+        "cross_split": false,
+        "left": "original:train:TRAIN_Q041",
+        "right": "original:train:TRAIN_Q216",
+        "score": 0.866667
+      },
+      {
+        "cross_split": false,
+        "left": "original:train:TRAIN_Q053",
+        "right": "original:train:TRAIN_Q055",
+        "score": 0.857143
+      },
+      {
+        "cross_split": false,
+        "left": "original:train:TRAIN_Q060",
+        "right": "original:train:TRAIN_Q101",
+        "score": 0.95
+      },
+      {
+        "cross_split": false,
+        "left": "original:train:TRAIN_Q060",
+        "right": "original:train:TRAIN_Q517",
+        "score": 0.890625
+      },
+      {
+        "cross_split": false,
+        "left": "original:train:TRAIN_Q064",
+        "right": "original:train:TRAIN_Q510",
+        "score": 1.0
+      },
+      {
+        "cross_split": false,
+        "left": "original:train:TRAIN_Q101",
+        "right": "original:train:TRAIN_Q517",
+        "score": 0.934426
+      },
+      {
+        "cross_split": false,
+        "left": "original:test:TRAIN_Q108",
+        "right": "original:test:TRAIN_Q249",
+        "score": 0.9
+      },
+      {
+        "cross_split": false,
+        "left": "original:train:TRAIN_Q152",
+        "right": "original:train:TRAIN_Q322",
+        "score": 1.0
+      },
+      {
+        "cross_split": false,
+        "left": "original:train:TRAIN_Q171",
+        "right": "original:train:TRAIN_Q246",
+        "score": 0.870968
+      },
+      {
+        "cross_split": false,
+        "left": "original:train:TRAIN_Q212",
+        "right": "original:train:TRAIN_Q369",
+        "score": 0.923077
+      },
+      {
+        "cross_split": false,
+        "left": "original:train:TRAIN_Q227",
+        "right": "original:train:TRAIN_Q564",
+        "score": 0.911392
+      },
+      {
+        "cross_split": false,
+        "left": "original:test:TRAIN_Q271",
+        "right": "original:test:TRAIN_Q313",
+        "score": 0.910714
+      },
+      {
+        "cross_split": false,
+        "left": "original:train:TRAIN_Q280",
+        "right": "original:train:TRAIN_Q388",
+        "score": 0.939394
+      },
+      {
+        "cross_split": false,
+        "left": "original:train:TRAIN_Q290",
+        "right": "original:train:TRAIN_Q306",
+        "score": 0.867925
+      },
+      {
+        "cross_split": false,
+        "left": "original:train:TRAIN_Q330",
+        "right": "original:train:TRAIN_Q393",
+        "score": 0.869565
+      },
+      {
+        "cross_split": false,
+        "left": "original:train:TRAIN_Q330",
+        "right": "original:train:TRAIN_Q597",
+        "score": 0.916667
+      },
+      {
+        "cross_split": false,
+        "left": "original:train:TRAIN_Q338",
+        "right": "original:train:TRAIN_Q413",
+        "score": 0.97619
+      },
+      {
+        "cross_split": false,
+        "left": "original:train:TRAIN_Q387",
+        "right": "original:train:TRAIN_Q588",
+        "score": 0.863636
+      },
+      {
+        "cross_split": false,
+        "left": "original:train:TRAIN_Q393",
+        "right": "original:train:TRAIN_Q597",
+        "score": 0.869565
+      },
+      {
+        "cross_split": false,
+        "left": "original:train:TRAIN_Q401",
+        "right": "original:train:TRAIN_Q483",
+        "score": 0.866667
+      },
+      {
+        "cross_split": false,
+        "left": "original:train:TRAIN_Q573",
+        "right": "original:train:TRAIN_Q575",
+        "score": 0.851064
+      }
+    ]
+  },
+  "source_rows": 910,
+  "splits": {
+    "test": {
+      "answerable": 78,
+      "components": 98,
+      "rows": 106,
+      "unanswerable": 28
+    },
+    "train": {
+      "answerable": 309,
+      "components": 392,
+      "rows": 417,
+      "unanswerable": 108
+    },
+    "validation": {
+      "answerable": 142,
+      "components": 276,
+      "rows": 286,
+      "unanswerable": 144
+    }
+  }
+}

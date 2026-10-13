@@ -1,5 +1,8 @@
 # Source review and methodological decisions
 
+**Historical Phase 1 source review.** Eligibility decisions below are now resolved by
+[protocol v1](protocol-v1.md); the original snapshot remains blocked and unchanged.
+
 Reviewed on 2026-10-13. These are observations from downloaded source files, not model results.
 
 ## Verified sources

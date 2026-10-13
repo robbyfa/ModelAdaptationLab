@@ -5,7 +5,7 @@
 This research framework will compare Qwen2.5-1.5B-Instruct across zero-shot, few-shot,
 RAG, LoRA, and LoRA + RAG under a shared evaluation protocol. It is not a chatbot.
 
-**Status: Phase 1 implemented and audited against real TechQA data.** No model has
+**Status: Phase 1 complete; protocol v1 frozen before Phase 2.** No model has
 been trained or evaluated. Quality, latency, memory, and cost results remain pending.
 
 ## What the audit found
@@ -16,11 +16,12 @@ been trained or evaluated. Quality, latency, memory, and cost results remain pen
 - **28,482 source documents** cover all annotated gold documents.
 - NVIDIA's `train` file contains **all 910 train + development records**; it is inspection-only.
 - Archive terms say **CDLA-Permissive-1.0**, while the hub card says Apache-2.0.
-- No final test set has been designated. Experimental use is blocked pending a written
-  overlap/annotation/test protocol; original data have not been silently corrected.
+- Protocol v1 resolves eligibility: **417 training / 286 validation / 106 sealed internal
+  holdout questions**. It excludes 101 records and preserves the original source snapshot.
+- The holdout is audit-exposed and internally derived, not an official or wholly untouched test set.
 
 See the [generated audit](reports/dataset_audit.md), [full findings](reports/dataset_audit.json),
-and [source review and methodology](reports/source_review.md).
+and [protocol v1](reports/protocol-v1.md) for the active decisions.
 
 ## Reproduce Phase 1
 
@@ -32,13 +33,15 @@ uv run model-lab data download   # ~2.96 GB; streams extraction of selected file
 uv run model-lab data audit
 uv run model-lab data prepare
 uv run model-lab data verify
+uv run model-lab data protocol  # Versioned eligible split; final holdout stays sealed
+uv run model-lab data verify --manifests-dir data/manifests/techqa-internal-v1
 uv run pytest -q
 uv run ruff check .
 uv run ruff format --check .
 uv run mypy
 ```
 
-Allow about 4 GB of disk space for the archive, extracted subset, and processed data.
+Allow about 5 GB of disk space for the archive, extracted subset, and processed data.
 No GPU, model weights, API keys, or paid services are needed. CI uses synthetic fixtures only
 and never downloads datasets. The lockfile pins the Phase 1 environment.
 
@@ -66,6 +69,7 @@ not questions or answers. No annotation-derived NVIDIA context is exported as a 
 Future RAG may use held-out source documents under an open-book protocol; it must not use
 held-out annotations or per-question candidate lists to select retrieval evidence.
 
-**Next:** resolve the documented data protocol, then implement Phase 2's shared base/few-shot
-inference interface with traceable token counts, latency, and validation-only prompt selection.
+**Next:** implement Phase 2's shared base/few-shot inference interface using
+`load_annotations` with the `techqa-internal-v1` manifests and processed data. Training and
+validation are ready; holdout access remains sealed until the Phase 5 preregistration gate.
 See [development plan](reports/implementation_plan.md) for the remaining phases.

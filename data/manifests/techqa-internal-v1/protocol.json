@@ -1,0 +1,14 @@
+{
+  "conflict_policy": "quarantine_conflicting_exact_question_groups",
+  "deduplication": "lowest_question_id_per_exact_question",
+  "final_test_access": "sealed_until_phase5",
+  "final_test_source": "eligible_official_training_groups",
+  "near_duplicate_threshold": 0.85,
+  "overlap_policy": "connected_components_questions_and_identical_answers",
+  "protocol_id": "techqa-internal-v1",
+  "reference_policy": "whitespace_only_correction_otherwise_quarantine",
+  "schema_version": 1,
+  "seed": 42,
+  "test_group_fraction": 0.2,
+  "validation_source": "official_development"
+}

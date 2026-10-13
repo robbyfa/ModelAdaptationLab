@@ -7,9 +7,15 @@ from dataclasses import asdict
 from pathlib import Path
 
 from model_adaptation_lab.data.audit import run_audit, write_report
-from model_adaptation_lab.data.ingest import fetch_sources, load_config, original_documents
+from model_adaptation_lab.data.ingest import (
+    fetch_sources,
+    load_config,
+    original_documents,
+    original_questions,
+)
+from model_adaptation_lab.data.protocol import load_protocol, prepare_protocol
 from model_adaptation_lab.data.splits import freeze, verify
-from model_adaptation_lab.io import LabError, atomic_write, jsonl
+from model_adaptation_lab.io import LabError, atomic_write, canonical, digest, jsonl
 
 
 def parser() -> argparse.ArgumentParser:
@@ -22,13 +28,18 @@ def parser() -> argparse.ArgumentParser:
         ("audit", "Audit local sources; writes reports even when data are missing (exit 2)"),
         ("prepare", "Audit, save separated records/corpus, and freeze official assignments"),
         ("verify", "Verify existing frozen manifest hashes"),
+        ("protocol", "Build the versioned eligible protocol and seal its internal final holdout"),
     ):
         cmd = actions.add_parser(name, help=help_text, description=help_text)
         cmd.add_argument("--config", type=Path, default=Path("configs/dataset.yaml"))
         cmd.add_argument("--raw-dir", type=Path, default=Path("data/raw"))
         cmd.add_argument("--reports-dir", type=Path, default=Path("reports"))
-        cmd.add_argument("--manifests-dir", type=Path, default=Path("data/manifests"))
-        cmd.add_argument("--processed-dir", type=Path, default=Path("data/processed"))
+        suffix = "/techqa-internal-v1" if name == "protocol" else ""
+        cmd.add_argument("--manifests-dir", type=Path, default=Path("data/manifests" + suffix))
+        cmd.add_argument("--processed-dir", type=Path, default=Path("data/processed" + suffix))
+        if name == "protocol":
+            cmd.add_argument("--protocol", type=Path, default=Path("configs/protocol-v1.yaml"))
+            cmd.add_argument("--source-manifests-dir", type=Path, default=Path("data/manifests"))
     return root
 
 
@@ -37,9 +48,27 @@ def main(argv: list[str] | None = None) -> int:
     try:
         if args.action == "verify":
             lock = verify(args.manifests_dir)
-            print(f"Manifest hashes verified. Final test ready: {lock['final_test_ready']}")
+            print(
+                f"Manifest hashes verified. Final test assigned: {lock['final_test_ready']}; "
+                f"access: {lock.get('final_test_access', 'not_released')}"
+            )
             return 0
         config = load_config(args.config)
+        if args.action == "protocol":
+            rows = original_questions(args.raw_dir / "original/training_Q_A.json", "train")
+            rows += original_questions(args.raw_dir / "original/dev_Q_A.json", "validation")
+            summary = prepare_protocol(
+                rows,
+                args.raw_dir / "original/training_dev_technotes.json",
+                load_protocol(args.protocol),
+                args.source_manifests_dir,
+                args.manifests_dir,
+                args.processed_dir,
+                digest(canonical(config)),
+            )
+            print(f"Protocol frozen: {args.manifests_dir}; splits: {summary['splits']}")
+            print("Train/validation ready. Internal final holdout sealed until Phase 5.")
+            return 0
         if args.action == "download":
             fetch_sources(config, args.raw_dir)
             print("Pinned sources downloaded; run model-lab data audit")

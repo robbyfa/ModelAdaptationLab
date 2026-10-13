@@ -1,0 +1,7 @@
+{
+  "annotation_content_allowed": false,
+  "documents": 28482,
+  "original_corpus_sha256": "69261b5f4436d70379fd7172a8d97062c93f5d433c386d196937d198c66bf75a",
+  "processed_corpus_sha256": "89c2af7073eda8e98ccbb8a62068a62b617c547b3873c6b04c15cb4c00c82374",
+  "setting": "open_book_official_train_dev_document_subset"
+}
