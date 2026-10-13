@@ -1,0 +1,33 @@
+schema_version: 1
+original:
+  repository: PrimeQA/TechQA
+  revision: 60437bc79ab217679682217598a3693cab78365b
+  file: TechQA.tar.gz
+  sha256: 6b094ef9a69718f727ce8d7e15c4d961e51032cefaa952e0d6af9d176d7ba118
+  card_license: Apache-2.0
+  archive_license: CDLA-Permissive-1.0
+  license_status: archive_terms_differ_from_card
+  extracted_sha256:
+    training_Q_A.json: 0e9b77bc1ad7f7e95d05b095a34b1ece75c679575747949288a1d0f7470f4f46
+    dev_Q_A.json: df62a05619b07b386159bcbaaf3e0e50be93eaf983aea8a5f8ed1513a3c2ec6f
+    training_dev_technotes.json: 69261b5f4436d70379fd7172a8d97062c93f5d433c386d196937d198c66bf75a
+    README.txt: c5a58ed7f2780fb2c4f2e06f8933ec4afbd06b5f29f6797c7857f3812f824060
+    CDLA-Permissive-v1.0.pdf: e12775d6b5bfdba0bb33fd691dab386f0c7573853fdc4785c40b39739f120d5f
+ibm_code:
+  repository: IBM/techqa
+  revision: f0cf8ce11c6ef778c6bc064ee6c1d9b3eca76faf
+  license: Apache-2.0
+nvidia:
+  repository: nvidia/TechQA-RAG-Eval
+  revision: 0b5bbc84b7f07d6d09d063130e90b716d8d4a32a
+  file: train.json
+  license: Apache-2.0
+  role: inspection_only
+  sha256: 69d97231509482ed6bd5ec1c4bc0607acb82a88d11169eb8383592d0ca8b93c7
+policy:
+  split_source: official
+  final_test: unavailable_pending_protocol
+  near_duplicate_threshold: 0.85
+  near_duplicate_metric: normalized_word_set_jaccard
+  seed: 42
+  retrieval_access: source_documents_only_open_book

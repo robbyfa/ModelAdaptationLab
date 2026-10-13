@@ -1,0 +1,43 @@
+{
+  "dataset_config_sha256": "a93b2fe65a44aa564a47384da14a01693b5fab8fe1ee95b132386068d82e73be",
+  "experimental_use_blockers": [
+    "cross_split_exact_questions",
+    "reference_span_mismatches"
+  ],
+  "experimental_use_ready": false,
+  "files": {
+    "test.jsonl": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "train.jsonl": "1d63661288d23d5717d961e27c5d660f9c9646c5ef7567982a459ea7e533b43c",
+    "validation.jsonl": "649f93bac30f1e746250b3a56c5759698e00491d7d5992d287eb19bf206a7d17"
+  },
+  "final_test_ready": false,
+  "policy": "official train/dev; no inferred final test",
+  "schema_version": 1,
+  "sources": {
+    "CDLA-Permissive-v1.0.pdf": {
+      "sha256": "e12775d6b5bfdba0bb33fd691dab386f0c7573853fdc4785c40b39739f120d5f"
+    },
+    "README.txt": {
+      "sha256": "c5a58ed7f2780fb2c4f2e06f8933ec4afbd06b5f29f6797c7857f3812f824060"
+    },
+    "TechQA.tar.gz": {
+      "sha256": "6b094ef9a69718f727ce8d7e15c4d961e51032cefaa952e0d6af9d176d7ba118"
+    },
+    "dev_Q_A.json": {
+      "rows": 310,
+      "sha256": "df62a05619b07b386159bcbaaf3e0e50be93eaf983aea8a5f8ed1513a3c2ec6f"
+    },
+    "nvidia/train.json": {
+      "sha256": "69d97231509482ed6bd5ec1c4bc0607acb82a88d11169eb8383592d0ca8b93c7"
+    },
+    "training_Q_A.json": {
+      "rows": 600,
+      "sha256": "0e9b77bc1ad7f7e95d05b095a34b1ece75c679575747949288a1d0f7470f4f46"
+    },
+    "training_dev_technotes.json": {
+      "documents": 28482,
+      "sha256": "69261b5f4436d70379fd7172a8d97062c93f5d433c386d196937d198c66bf75a"
+    }
+  },
+  "test_status": "pending_protocol_not_an_evaluation_set"
+}
