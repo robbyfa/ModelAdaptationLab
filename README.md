@@ -5,8 +5,9 @@
 This research framework will compare Qwen2.5-1.5B-Instruct across zero-shot, few-shot,
 RAG, LoRA, and LoRA + RAG under a shared evaluation protocol. It is not a chatbot.
 
-**Status: Phase 1 complete; protocol v1 frozen before Phase 2.** No model has
-been trained or evaluated. Quality, latency, memory, and cost results remain pending.
+**Status: Phase 2 implemented; base/few-shot real-model smoke verified.** No LoRA training
+or final benchmark has run. A two-question validation smoke is execution evidence only;
+see [Phase 2 results and retained failures](reports/phase2.md).
 
 ## What the audit found
 
@@ -43,12 +44,21 @@ uv run mypy
 
 Allow about 5 GB of disk space for the archive, extracted subset, and processed data.
 No GPU, model weights, API keys, or paid services are needed. CI uses synthetic fixtures only
-and never downloads datasets. The lockfile pins the Phase 1 environment.
+and never downloads datasets. The lockfile pins data and optional inference dependencies.
 
 `data audit` saves a limitations report and exits 2 when sources are missing. `prepare`
 preserves official assignments and creates an immutable manifest lock; a changed input
 requires a new versioned output directory. `verify` checks integrity, **not readiness**.
-`train`, `evaluate`, and `benchmark` are intentionally not implemented yet.
+`evaluate` supports base/few-shot validation inference; training and the five-way benchmark
+are not implemented yet. Install model dependencies separately with `uv sync --locked --extra inference`.
+
+```bash
+uv run --extra inference model-lab evaluate --strategy both --smoke \
+  --device mps --dtype float32 --output-dir outputs/my-smoke
+```
+
+Use `--device cuda` on a CUDA host, or explicitly select `cpu` (potentially slow). All final-test
+access remains sealed. The successful local smoke used float32; float16 MPS failed numerical checks.
 
 ## Data boundaries
 
@@ -69,7 +79,7 @@ not questions or answers. No annotation-derived NVIDIA context is exported as a 
 Future RAG may use held-out source documents under an open-book protocol; it must not use
 held-out annotations or per-question candidate lists to select retrieval evidence.
 
-**Next:** implement Phase 2's shared base/few-shot inference interface using
-`load_annotations` with the `techqa-internal-v1` manifests and processed data. Training and
-validation are ready; holdout access remains sealed until the Phase 5 preregistration gate.
+**Next:** implement Phase 3 corpus chunking, pinned embeddings, FAISS, and RAG using the same
+model interface. The few-shot prompt remains an unoptimized candidate; validation-based prompt
+selection and the final evaluation rubric must precede the five-way benchmark.
 See [development plan](reports/implementation_plan.md) for the remaining phases.

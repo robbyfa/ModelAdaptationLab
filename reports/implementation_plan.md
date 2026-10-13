@@ -15,12 +15,15 @@
 internal final-holdout design in `protocol-v1.md`. Eligible manifests are frozen separately;
 Phase 2 training/validation access is ready and final-holdout access remains sealed.
 
-**Next concrete step:** implement the Phase 2 common inference interface and base/few-shot
-strategies, loading only eligible training/validation data through the guarded access layer.
+**Phase 2 implemented:** shared base/few-shot inference, guarded validation evaluation,
+traceable local runs, real float32 MPS smoke, and documented float16 failures. See `phase2.md`.
 
-## Remaining phases
+**Next concrete step:** implement Phase 3 frozen-corpus chunking, pinned embeddings, FAISS,
+and RAG with shared model settings. Final holdout access remains sealed.
 
-2. Base/few-shot: common AnsweringStrategy and AnswerResult, pinned model loader, chat template,
+## Phase roadmap
+
+2. Implemented base/few-shot: common AnsweringStrategy and AnswerResult, pinned model loader, chat template,
    frozen generation config, training-only demonstrations, latency/token accounting, CPU mocks,
    explicit hardware prerequisites, and validation-only smoke runs.
 3. Retrieval: independently frozen corpus, deterministic chunks, pinned embeddings, FAISS,
@@ -28,7 +31,7 @@ strategies, loading only eligible training/validation data through the guarded a
 4. LoRA: assistant-only loss, padding masks, validation checkpoint selection, adapter-only
    checkpoints, CUDA/quantization checks, memory/time capture, MLflow reconstruction metadata,
    and one shared adapter for LoRA and LoRA + RAG.
-5. Evaluation: finalized untouched test protocol, five-way benchmark, missing/failure-aware
+5. Evaluation: preregistered audit-exposed internal holdout protocol, five-way benchmark, missing/failure-aware
    quality/resource metrics, frozen judging rubric plus human review, nested training subsets,
    ranks 8/16, and clearly separate ablations.
 6. Report: measured results, plots, error taxonomy, validity threats, explicit cost assumptions,

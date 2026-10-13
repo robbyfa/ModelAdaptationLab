@@ -1,4 +1,4 @@
-"""Phase 1 CLI. Missing prerequisites are errors, never synthetic fallbacks."""
+"""Dataset and validation inference CLI; no mock substitution or final-test access."""
 
 import argparse
 import sys
@@ -15,12 +15,45 @@ from model_adaptation_lab.data.ingest import (
 )
 from model_adaptation_lab.data.protocol import load_protocol, prepare_protocol
 from model_adaptation_lab.data.splits import freeze, verify
+from model_adaptation_lab.evaluation.runner import run_evaluation
 from model_adaptation_lab.io import LabError, atomic_write, canonical, digest, jsonl
+from model_adaptation_lab.models.loader import yaml_config
 
 
 def parser() -> argparse.ArgumentParser:
-    root = argparse.ArgumentParser(description="Model Adaptation Lab — Phase 1 data foundation")
+    root = argparse.ArgumentParser(
+        description="Model Adaptation Lab — audited data and validation inference"
+    )
     commands = root.add_subparsers(dest="command", required=True)
+    evaluate = commands.add_parser("evaluate", help="Run real-model validation inference only")
+    evaluate.add_argument("--strategy", choices=["base", "prompt", "both"], required=True)
+    evaluate.add_argument("--model-config", type=Path, default=Path("configs/model.yaml"))
+    evaluate.add_argument("--generation-config", type=Path, default=Path("configs/generation.yaml"))
+    evaluate.add_argument("--prompt-config", type=Path, default=Path("configs/prompts.yaml"))
+    evaluate.add_argument(
+        "--manifests-dir", type=Path, default=Path("data/manifests/techqa-internal-v1")
+    )
+    evaluate.add_argument(
+        "--processed-dir", type=Path, default=Path("data/processed/techqa-internal-v1")
+    )
+    evaluate.add_argument(
+        "--output-dir",
+        type=Path,
+        required=True,
+        help="New directory; previous attempts are never overwritten",
+    )
+    evaluate.add_argument("--cache-dir", type=Path, default=Path("outputs/model-cache"))
+    evaluate.add_argument("--device", choices=["cuda", "cpu", "mps"])
+    evaluate.add_argument("--dtype", choices=["float32", "float16", "bfloat16"])
+    evaluate.add_argument("--local-files-only", action="store_true")
+    evaluate.add_argument(
+        "--smoke",
+        action="store_true",
+        help="Two balanced validation rows and at most 64 new tokens",
+    )
+    evaluate.add_argument(
+        "--limit", type=int, help="Validation subset size; recorded in run metadata"
+    )
     data = commands.add_parser("data", help="Download, audit, freeze, or verify data")
     actions = data.add_subparsers(dest="action", required=True)
     for name, help_text in (
@@ -46,6 +79,32 @@ def parser() -> argparse.ArgumentParser:
 def main(argv: list[str] | None = None) -> int:
     args = parser().parse_args(argv)
     try:
+        if args.command == "evaluate":
+            model = yaml_config(args.model_config)
+            generation = yaml_config(args.generation_config)
+            if args.device:
+                model["device"] = args.device
+            if args.dtype:
+                model["dtype"] = args.dtype
+            if args.smoke:
+                generation["max_new_tokens"] = min(generation.get("max_new_tokens", 64), 64)
+            if args.limit is not None and args.limit <= 0:
+                raise LabError("--limit must be positive")
+            state = run_evaluation(
+                strategy_names=["base", "prompt"] if args.strategy == "both" else [args.strategy],
+                model=model,
+                generation=generation,
+                prompts=yaml_config(args.prompt_config),
+                manifests=args.manifests_dir,
+                processed=args.processed_dir,
+                output=args.output_dir,
+                cache=args.cache_dir,
+                smoke=args.smoke,
+                limit=args.limit,
+                local_files_only=args.local_files_only,
+            )
+            print(f"Validation run {state['status']}: {args.output_dir / 'run.json'}")
+            return 0 if state["status"] == "completed" else 1
         if args.action == "verify":
             lock = verify(args.manifests_dir)
             print(
@@ -104,6 +163,9 @@ def main(argv: list[str] | None = None) -> int:
         for issue in report["issues"]:
             print(f"LIMITATION: {issue}")
         return 0
+    except KeyboardInterrupt:
+        print("error: Interrupted; partial run artifacts have been preserved", file=sys.stderr)
+        return 130
     except (LabError, OSError, tarfile.TarError, EOFError) as exc:
         print(f"error: {exc}", file=sys.stderr)
         return 2

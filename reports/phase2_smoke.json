@@ -1,0 +1,279 @@
+{
+  "attempts": [
+    {
+      "code_snapshot_sha256": null,
+      "directory": "outputs/phase2-smoke-mps-v1",
+      "error": null,
+      "execution_status": "completed",
+      "freeze_sha256": "41e3f9faa1b0fabd810c2bf19fcca8ddc3b6effa1887c1e11778a6e56f6c4fe2",
+      "generation_config": {
+        "do_sample": false,
+        "max_input_tokens": 4096,
+        "max_new_tokens": 64,
+        "num_beams": 1,
+        "schema_version": 1,
+        "seed": 42,
+        "use_cache": true
+      },
+      "model_config": {
+        "device": "mps",
+        "dtype": "float16",
+        "license": "Apache-2.0",
+        "model_id": "Qwen/Qwen2.5-1.5B-Instruct",
+        "revision": "989aa7980e4cf806f80c7fef2b1adb7bc71aa306",
+        "tokenizer_revision": "989aa7980e4cf806f80c7fef2b1adb7bc71aa306",
+        "trust_remote_code": false
+      },
+      "results": {
+        "base": {
+          "appropriate_abstention_annotation_scoped": 0.0,
+          "appropriate_abstention_annotation_scoped_denominator": 1,
+          "attempted": 2,
+          "failed": 0,
+          "file_sha256": "42f13ea60f4b7b9a1a5966653d82969b69e720bbf4cbee176c8aeecf5f2ec84e",
+          "inference_cost_per_1000": null,
+          "input_tokens": 264,
+          "latency_p50_ms": 3462.479291949421,
+          "latency_p95_ms": 3569.1115916590206,
+          "normalized_exact_match": 0.0,
+          "normalized_exact_match_denominator": 1,
+          "output_tokens": 128,
+          "quality_scope": "lexical/abstention diagnostics only; unavailable metrics are null",
+          "succeeded": 2,
+          "token_f1_diagnostic": 0.0,
+          "token_f1_diagnostic_denominator": 1,
+          "training_gpu_hours": null,
+          "unnecessary_abstention": 0.0,
+          "unnecessary_abstention_denominator": 1
+        },
+        "prompt": {
+          "appropriate_abstention_annotation_scoped": 0.0,
+          "appropriate_abstention_annotation_scoped_denominator": 1,
+          "attempted": 2,
+          "failed": 0,
+          "file_sha256": "e28146ecd2068a33d045be6fdfe0a1cc62519057cfdc6b3f511d7c830993dcc0",
+          "inference_cost_per_1000": null,
+          "input_tokens": 1104,
+          "latency_p50_ms": 3513.2145840325393,
+          "latency_p95_ms": 3683.1142215116415,
+          "normalized_exact_match": 0.0,
+          "normalized_exact_match_denominator": 1,
+          "output_tokens": 128,
+          "quality_scope": "lexical/abstention diagnostics only; unavailable metrics are null",
+          "succeeded": 2,
+          "token_f1_diagnostic": 0.0,
+          "token_f1_diagnostic_denominator": 1,
+          "training_gpu_hours": null,
+          "unnecessary_abstention": 0.0,
+          "unnecessary_abstention_denominator": 1
+        }
+      },
+      "run_metadata_sha256": "9263ad82a5ec5e4bebd5c5deecc8f6d27cc07be7f89613520afbd68448f31c73",
+      "runtime": {
+        "attention_implementation": "eager",
+        "backend": "transformers",
+        "chat_template_sha256": "cd8e9439f0570856fd70470bf8889ebd8b5d1107207f67a5efb46e342330527f",
+        "cuda_version": null,
+        "device": "mps",
+        "dtype": "float16",
+        "gpu_name": null,
+        "memory_scope": "CUDA per-question peak including resident model; null on CPU/MPS",
+        "model_load_ms": 7813.11712495517,
+        "packages": {
+          "safetensors": "0.8.0",
+          "tokenizers": "0.22.2",
+          "torch": "2.14.1",
+          "transformers": "4.57.6"
+        },
+        "platform": "macOS-26.7.1-arm64-arm-64bit",
+        "python": "3.12.12",
+        "timing_scope": "synchronized generate() includes prefill; model loading separate"
+      },
+      "validation_ids": [
+        "DEV_Q161",
+        "DEV_Q222"
+      ],
+      "validation_status": "invalid_repetitive_outputs"
+    },
+    {
+      "code_snapshot_sha256": null,
+      "directory": "outputs/phase2-smoke-mps-fp16-guarded",
+      "error": "LabError: Generation failed on mps; check memory/context limits: Non-finite generation scores; this device/dtype is numerically invalid for this run. Try float32 and preserve the failed attempt",
+      "execution_status": "failed",
+      "freeze_sha256": "41e3f9faa1b0fabd810c2bf19fcca8ddc3b6effa1887c1e11778a6e56f6c4fe2",
+      "generation_config": {
+        "do_sample": false,
+        "max_input_tokens": 4096,
+        "max_new_tokens": 64,
+        "num_beams": 1,
+        "schema_version": 1,
+        "seed": 42,
+        "use_cache": true
+      },
+      "model_config": {
+        "device": "mps",
+        "dtype": "float16",
+        "license": "Apache-2.0",
+        "model_id": "Qwen/Qwen2.5-1.5B-Instruct",
+        "revision": "989aa7980e4cf806f80c7fef2b1adb7bc71aa306",
+        "tokenizer_revision": "989aa7980e4cf806f80c7fef2b1adb7bc71aa306",
+        "trust_remote_code": false
+      },
+      "results": {},
+      "run_metadata_sha256": "699fb1b3182f10b4d8cef5891318229452e387a81bd40904f8c3584877a6cbe9",
+      "runtime": {
+        "attention_implementation": "eager",
+        "backend": "transformers",
+        "chat_template_sha256": "cd8e9439f0570856fd70470bf8889ebd8b5d1107207f67a5efb46e342330527f",
+        "cuda_version": null,
+        "device": "mps",
+        "dtype": "float16",
+        "finite_score_guard": "every decoding step; synchronization overhead included",
+        "gpu_name": null,
+        "memory_scope": "CUDA per-question peak including resident model; null on CPU/MPS",
+        "model_load_ms": 2785.8758330112323,
+        "packages": {
+          "safetensors": "0.8.0",
+          "tokenizers": "0.22.2",
+          "torch": "2.14.1",
+          "transformers": "4.57.6"
+        },
+        "platform": "macOS-26.7.1-arm64-arm-64bit",
+        "python": "3.12.12",
+        "timing_scope": "synchronized generate() includes prefill; model loading separate"
+      },
+      "validation_ids": [
+        "DEV_Q161",
+        "DEV_Q222"
+      ],
+      "validation_status": "failed_nonfinite_scores"
+    },
+    {
+      "code_snapshot_sha256": {
+        "configs/dataset.yaml": "c597f9052d876015c9ebe026080c1f7de8b120ccffec1dfa336049c403c8b35f",
+        "configs/generation.yaml": "ad52768cbeb3403cc880139d08653e2665c985f8cad7329d9806b5131d45a14f",
+        "configs/model.yaml": "d1bb292af177bcc39095a622f638656e27a64e8404e97d14a429d37483e797e6",
+        "configs/prompts.yaml": "facd688b7d3d51c927d1c66c13914efd6ef790ee0b271b65326bb66333272bb1",
+        "configs/protocol-v1.yaml": "853e1e53bf3c3454516cf0379a99164f6cc81677b4ed783a31f0d2241c819339",
+        "pyproject.toml": "37eab5afe0bdf9b375e1e43b3c5e1d759e7fab41d76df9c498b7703123b541f3",
+        "src/model_adaptation_lab/__init__.py": "0e363bc469eeff70ff585a6c2867f3cbb1707a7eda7b57565e36d456380d8c73",
+        "src/model_adaptation_lab/cli.py": "72b8834f4c36b38fbce2a551f3bd41006e7fcbc23df6ef5f5aadf5157aab2322",
+        "src/model_adaptation_lab/data/__init__.py": "ab233ede10e1c377a50096c35c54893b7ab91961903e225627b9f3076625d44d",
+        "src/model_adaptation_lab/data/audit.py": "64d52f77485147f59e2467fcabd4467d8114448938d89f020b0967757da58eb8",
+        "src/model_adaptation_lab/data/ingest.py": "9d4cfc1ccb4376721383323a93f41349421f498daaf7ca7ca827b7a59c463224",
+        "src/model_adaptation_lab/data/protocol.py": "f07e72fa1aeeb8316abc6552c10f555742b94e04bfa7ae1630b7854c671c13a5",
+        "src/model_adaptation_lab/data/splits.py": "e90b9dd15ddeccf75643f222d8f0f520733fe94e99140216aa9ebcdd3df4df97",
+        "src/model_adaptation_lab/evaluation/__init__.py": "6e1759ac39314cf6f17e9f9f4fcc0ddea31d2cc8d58b3ae855d23a3e738bea34",
+        "src/model_adaptation_lab/evaluation/metrics.py": "95d33f9b0b2e6541bc40ea3cd1c71b6d949aae76037120504e9c242c413ce900",
+        "src/model_adaptation_lab/evaluation/runner.py": "d44dd8689e81c9c9ebed88ffff5c17fb2703571455437848d96ce98fc4ef9f4c",
+        "src/model_adaptation_lab/io.py": "ed11f8329f32c17d848d1c833c93cd8ef1114bf2d7d95d68b2f01af4a23fdc38",
+        "src/model_adaptation_lab/models/__init__.py": "659e49ee785919c695fa254901a6c281289780f7f28d153a482ff74737bea065",
+        "src/model_adaptation_lab/models/loader.py": "41f539287013b7903585f2fabd6ded301cba8c6179a317bcf9b4c935cd37f158",
+        "src/model_adaptation_lab/models/prompting.py": "51564f404f36d7a693971a9590938dc88689ad9f43c4fbcd756c993157a54474",
+        "src/model_adaptation_lab/strategies/__init__.py": "be2363469adafe00785c79d55d3f14867d2903523c3ae59734193b2badea792c",
+        "src/model_adaptation_lab/strategies/base.py": "30ef55b0bbbb3cc35ca5595428ce64d73d338646ad47ab62722934e2e4ee1504",
+        "src/model_adaptation_lab/strategies/few_shot.py": "291a184aaa80ad52e2f9f390466f25e2fc2f2a8cf0a84b0d1b5b5acf1127ae5d",
+        "uv.lock": "152ba34238cd64967966b19ebf557b55f6cdccdbf55658ebede4308a3a170187"
+      },
+      "directory": "outputs/phase2-smoke-mps-fp32",
+      "error": null,
+      "execution_status": "completed",
+      "freeze_sha256": "41e3f9faa1b0fabd810c2bf19fcca8ddc3b6effa1887c1e11778a6e56f6c4fe2",
+      "generation_config": {
+        "do_sample": false,
+        "max_input_tokens": 4096,
+        "max_new_tokens": 64,
+        "num_beams": 1,
+        "schema_version": 1,
+        "seed": 42,
+        "use_cache": true
+      },
+      "model_config": {
+        "device": "mps",
+        "dtype": "float32",
+        "license": "Apache-2.0",
+        "model_id": "Qwen/Qwen2.5-1.5B-Instruct",
+        "revision": "989aa7980e4cf806f80c7fef2b1adb7bc71aa306",
+        "tokenizer_revision": "989aa7980e4cf806f80c7fef2b1adb7bc71aa306",
+        "trust_remote_code": false
+      },
+      "results": {
+        "base": {
+          "appropriate_abstention_annotation_scoped": 1.0,
+          "appropriate_abstention_annotation_scoped_denominator": 1,
+          "attempted": 2,
+          "failed": 0,
+          "file_sha256": "9837eeac4a574654d0321b9919780ad44fc37d04d6df7f52d590cbe2cebf9187",
+          "inference_cost_per_1000": null,
+          "input_tokens": 264,
+          "latency_p50_ms": 1186.489770479966,
+          "latency_p95_ms": 1264.5036267640535,
+          "normalized_exact_match": 0.0,
+          "normalized_exact_match_denominator": 1,
+          "output_tokens": 24,
+          "quality_scope": "lexical/abstention diagnostics only; unavailable metrics are null",
+          "succeeded": 2,
+          "token_f1_diagnostic": 0.046511627906976744,
+          "token_f1_diagnostic_denominator": 1,
+          "training_gpu_hours": null,
+          "unnecessary_abstention": 1.0,
+          "unnecessary_abstention_denominator": 1
+        },
+        "prompt": {
+          "appropriate_abstention_annotation_scoped": 1.0,
+          "appropriate_abstention_annotation_scoped_denominator": 1,
+          "attempted": 2,
+          "failed": 0,
+          "file_sha256": "c391739bb703996de0fe7c37e46d80a0ed6ae2ebb61080b2d7a05727550201e4",
+          "inference_cost_per_1000": null,
+          "input_tokens": 1104,
+          "latency_p50_ms": 2679.1526254964992,
+          "latency_p95_ms": 3695.065050618723,
+          "normalized_exact_match": 0.0,
+          "normalized_exact_match_denominator": 1,
+          "output_tokens": 56,
+          "quality_scope": "lexical/abstention diagnostics only; unavailable metrics are null",
+          "succeeded": 2,
+          "token_f1_diagnostic": 0.3235294117647059,
+          "token_f1_diagnostic_denominator": 1,
+          "training_gpu_hours": null,
+          "unnecessary_abstention": 0.0,
+          "unnecessary_abstention_denominator": 1
+        }
+      },
+      "run_metadata_sha256": "a1fd5a5a542a08d89fd654cb29392cbc7cd86114571c70da7ef9b69af82663e0",
+      "runtime": {
+        "attention_implementation": "eager",
+        "backend": "transformers",
+        "chat_template_sha256": "cd8e9439f0570856fd70470bf8889ebd8b5d1107207f67a5efb46e342330527f",
+        "cuda_version": null,
+        "device": "mps",
+        "dtype": "float32",
+        "finite_score_guard": "every decoding step; synchronization overhead included",
+        "gpu_name": null,
+        "memory_scope": "CUDA per-question peak including resident model; null on CPU/MPS",
+        "model_load_ms": 4748.990916996263,
+        "packages": {
+          "safetensors": "0.8.0",
+          "tokenizers": "0.22.2",
+          "torch": "2.14.1",
+          "transformers": "4.57.6"
+        },
+        "platform": "macOS-26.7.1-arm64-arm-64bit",
+        "python": "3.12.12",
+        "timing_scope": "synchronized generate() includes prefill; model loading separate"
+      },
+      "validation_ids": [
+        "DEV_Q161",
+        "DEV_Q222"
+      ],
+      "validation_status": "valid_execution_only"
+    }
+  ],
+  "host_hardware_verified_after_execution": {
+    "chip": "Apple M3 Pro",
+    "source": "sysctl -n machdep.cpu.brand_string hw.memsize",
+    "system_memory_bytes": 38654705664
+  },
+  "scope": "validation smoke only; no quality claims; no heldout access"
+}
