@@ -29,6 +29,9 @@ class AnswerResult:
     peak_reserved_bytes: int | None
     finish_reason: str
     generation_parameters: dict[str, Any]
+    retrieved_chunks: tuple[dict[str, Any], ...] = ()
+    retrieval_parameters: dict[str, Any] | None = None
+    citation_document_ids: tuple[str, ...] = ()
 
 
 @runtime_checkable

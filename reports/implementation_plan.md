@@ -18,15 +18,19 @@ Phase 2 training/validation access is ready and final-holdout access remains sea
 **Phase 2 implemented:** shared base/few-shot inference, guarded validation evaluation,
 traceable local runs, real float32 MPS smoke, and documented float16 failures. See `phase2.md`.
 
-**Next concrete step:** implement Phase 3 frozen-corpus chunking, pinned embeddings, FAISS,
-and RAG with shared model settings. Final holdout access remains sealed.
+**Phase 3 implemented:** pinned MiniLM embeddings, deterministic source-only chunks, isolated
+CPU FAISS, shared RAG evaluation, retrieval metrics, and a real full-index validation smoke.
+See `phase3.md`; 82 CPU-only tests pass. Final holdout access remains sealed.
+
+**Next concrete step:** implement Phase 4 assistant-only LoRA training and MLflow metadata,
+then execute a small CUDA training run on a suitable host before adapted validation inference.
 
 ## Phase roadmap
 
 2. Implemented base/few-shot: common AnsweringStrategy and AnswerResult, pinned model loader, chat template,
    frozen generation config, training-only demonstrations, latency/token accounting, CPU mocks,
    explicit hardware prerequisites, and validation-only smoke runs.
-3. Retrieval: independently frozen corpus, deterministic chunks, pinned embeddings, FAISS,
+3. Implemented retrieval: independently frozen corpus, deterministic chunks, pinned embeddings, FAISS,
    source IDs, retrieval timings, evidence recall, and no annotation-based oracle retrieval.
 4. LoRA: assistant-only loss, padding masks, validation checkpoint selection, adapter-only
    checkpoints, CUDA/quantization checks, memory/time capture, MLflow reconstruction metadata,

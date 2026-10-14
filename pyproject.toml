@@ -11,12 +11,13 @@ dependencies = ["PyYAML>=6.0.2,<7"]
 
 [project.optional-dependencies]
 inference = ["torch>=2.6,<3", "transformers>=4.57.1,<5"]
+retrieval = ["torch>=2.6,<3", "transformers>=4.57.1,<5", "numpy>=1.26,<3", "faiss-cpu>=1.10,<2"]
 
 [project.scripts]
 model-lab = "model_adaptation_lab.cli:main"
 
 [dependency-groups]
-dev = ["pytest>=8.3,<9", "ruff>=0.11,<1", "mypy>=1.15,<2", "types-PyYAML>=6.0"]
+dev = ["pytest>=8.3,<9", "ruff>=0.11,<1", "mypy>=1.15,<2", "types-PyYAML>=6.0", "numpy>=1.26,<3", "faiss-cpu>=1.10,<2"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

@@ -5,9 +5,9 @@
 This research framework will compare Qwen2.5-1.5B-Instruct across zero-shot, few-shot,
 RAG, LoRA, and LoRA + RAG under a shared evaluation protocol. It is not a chatbot.
 
-**Status: Phase 2 implemented; base/few-shot real-model smoke verified.** No LoRA training
+**Status: Phase 3 implemented; base/few-shot/RAG real-model smoke verified.** No LoRA training
 or final benchmark has run. A two-question validation smoke is execution evidence only;
-see [Phase 2 results and retained failures](reports/phase2.md).
+see [Phase 3 results and limitations](reports/phase3.md).
 
 ## What the audit found
 
@@ -49,7 +49,7 @@ and never downloads datasets. The lockfile pins data and optional inference depe
 `data audit` saves a limitations report and exits 2 when sources are missing. `prepare`
 preserves official assignments and creates an immutable manifest lock; a changed input
 requires a new versioned output directory. `verify` checks integrity, **not readiness**.
-`evaluate` supports base/few-shot validation inference; training and the five-way benchmark
+`evaluate` supports base/few-shot/RAG validation inference; training and the five-way benchmark
 are not implemented yet. Install model dependencies separately with `uv sync --locked --extra inference`.
 
 ```bash
@@ -76,10 +76,26 @@ flowchart LR
 
 Raw data and processed text are ignored by Git. Committed manifests contain IDs and hashes,
 not questions or answers. No annotation-derived NVIDIA context is exported as a corpus.
-Future RAG may use held-out source documents under an open-book protocol; it must not use
+RAG uses held-out source documents under the frozen open-book protocol; it does not use
 held-out annotations or per-question candidate lists to select retrieval evidence.
 
-**Next:** implement Phase 3 corpus chunking, pinned embeddings, FAISS, and RAG using the same
-model interface. The few-shot prompt remains an unoptimized candidate; validation-based prompt
-selection and the final evaluation rubric must precede the five-way benchmark.
-See [development plan](reports/implementation_plan.md) for the remaining phases.
+## Reproduce retrieval
+
+```bash
+uv sync --locked --extra retrieval
+uv run --extra retrieval model-lab retrieval build --index-dir outputs/my-index \
+  --embedding-device mps
+uv run model-lab retrieval verify --index-dir outputs/my-index
+uv run --extra retrieval model-lab evaluate --strategy available --smoke \
+  --device mps --dtype float32 --embedding-device mps \
+  --index-dir outputs/my-index --output-dir outputs/my-rag-smoke
+```
+
+The verified index contains **154,630 chunks from 28,482 source documents**. Use a new
+output directory for every build/run. Embeddings default to CPU; choose CUDA or MPS explicitly.
+Index files, model weights, and per-question outputs remain outside Git.
+
+**Next:** Phase 4 LoRA training with assistant-only loss, validation checkpoint selection,
+adapter reuse, and MLflow tracking. CUDA training requires a suitable host; this local machine
+has Apple MPS only. Prompt selection and the final evaluation rubric remain pending.
+See [development plan](reports/implementation_plan.md).

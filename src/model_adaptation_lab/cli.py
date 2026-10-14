@@ -18,6 +18,7 @@ from model_adaptation_lab.data.splits import freeze, verify
 from model_adaptation_lab.evaluation.runner import run_evaluation
 from model_adaptation_lab.io import LabError, atomic_write, canonical, digest, jsonl
 from model_adaptation_lab.models.loader import yaml_config
+from model_adaptation_lab.retrieval.indexing import build_index, verify_index
 
 
 def parser() -> argparse.ArgumentParser:
@@ -26,7 +27,9 @@ def parser() -> argparse.ArgumentParser:
     )
     commands = root.add_subparsers(dest="command", required=True)
     evaluate = commands.add_parser("evaluate", help="Run real-model validation inference only")
-    evaluate.add_argument("--strategy", choices=["base", "prompt", "both"], required=True)
+    evaluate.add_argument(
+        "--strategy", choices=["base", "prompt", "both", "rag", "available"], required=True
+    )
     evaluate.add_argument("--model-config", type=Path, default=Path("configs/model.yaml"))
     evaluate.add_argument("--generation-config", type=Path, default=Path("configs/generation.yaml"))
     evaluate.add_argument("--prompt-config", type=Path, default=Path("configs/prompts.yaml"))
@@ -54,6 +57,32 @@ def parser() -> argparse.ArgumentParser:
     evaluate.add_argument(
         "--limit", type=int, help="Validation subset size; recorded in run metadata"
     )
+    evaluate.add_argument("--retrieval-config", type=Path, default=Path("configs/retrieval.yaml"))
+    evaluate.add_argument("--index-dir", type=Path, help="Required for rag or available strategies")
+    evaluate.add_argument("--embedding-device", choices=["cpu", "cuda", "mps"])
+    retrieval = commands.add_parser(
+        "retrieval", help="Build/verify a frozen source-document FAISS index"
+    )
+    retrieval_actions = retrieval.add_subparsers(dest="retrieval_action", required=True)
+    for action in ("build", "verify"):
+        cmd = retrieval_actions.add_parser(action)
+        cmd.add_argument("--index-dir", type=Path, required=True)
+        cmd.add_argument(
+            "--manifests-dir", type=Path, default=Path("data/manifests/techqa-internal-v1")
+        )
+        if action == "build":
+            cmd.add_argument(
+                "--processed-dir", type=Path, default=Path("data/processed/techqa-internal-v1")
+            )
+            cmd.add_argument("--config", type=Path, default=Path("configs/retrieval.yaml"))
+            cmd.add_argument("--cache-dir", type=Path, default=Path("outputs/model-cache"))
+            cmd.add_argument("--embedding-device", choices=["cpu", "cuda", "mps"])
+            cmd.add_argument(
+                "--max-documents",
+                type=int,
+                help="Explicit QA-independent smoke subset; never a primary index",
+            )
+            cmd.add_argument("--local-files-only", action="store_true")
     data = commands.add_parser("data", help="Download, audit, freeze, or verify data")
     actions = data.add_subparsers(dest="action", required=True)
     for name, help_text in (
@@ -79,6 +108,27 @@ def parser() -> argparse.ArgumentParser:
 def main(argv: list[str] | None = None) -> int:
     args = parser().parse_args(argv)
     try:
+        if args.command == "retrieval":
+            if args.retrieval_action == "verify":
+                result = verify_index(args.index_dir, args.manifests_dir)
+            else:
+                config = yaml_config(args.config)
+                if args.embedding_device:
+                    config["embedding"]["device"] = args.embedding_device
+                result = build_index(
+                    manifests=args.manifests_dir,
+                    processed=args.processed_dir,
+                    config=config,
+                    output=args.index_dir,
+                    cache=args.cache_dir,
+                    local_files_only=args.local_files_only,
+                    max_documents=args.max_documents,
+                )
+            print(
+                f"Index {result['status']}: {result['documents_indexed']} documents, "
+                f"{result['chunks_indexed']} chunks; {result['corpus_scope']}"
+            )
+            return 0
         if args.command == "evaluate":
             model = yaml_config(args.model_config)
             generation = yaml_config(args.generation_config)
@@ -90,8 +140,14 @@ def main(argv: list[str] | None = None) -> int:
                 generation["max_new_tokens"] = min(generation.get("max_new_tokens", 64), 64)
             if args.limit is not None and args.limit <= 0:
                 raise LabError("--limit must be positive")
+            names = {"both": ["base", "prompt"], "available": ["base", "prompt", "rag"]}.get(
+                args.strategy, [args.strategy]
+            )
+            retrieval_config = yaml_config(args.retrieval_config) if "rag" in names else None
+            if retrieval_config is not None and args.embedding_device:
+                retrieval_config["embedding"]["device"] = args.embedding_device
             state = run_evaluation(
-                strategy_names=["base", "prompt"] if args.strategy == "both" else [args.strategy],
+                strategy_names=names,
                 model=model,
                 generation=generation,
                 prompts=yaml_config(args.prompt_config),
@@ -102,6 +158,8 @@ def main(argv: list[str] | None = None) -> int:
                 smoke=args.smoke,
                 limit=args.limit,
                 local_files_only=args.local_files_only,
+                retrieval_config=retrieval_config,
+                index_path=args.index_dir,
             )
             print(f"Validation run {state['status']}: {args.output_dir / 'run.json'}")
             return 0 if state["status"] == "completed" else 1

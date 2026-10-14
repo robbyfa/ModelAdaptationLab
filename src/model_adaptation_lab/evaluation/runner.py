@@ -11,6 +11,7 @@ from typing import Any
 
 from model_adaptation_lab.data.splits import load_annotations, verify
 from model_adaptation_lab.evaluation.metrics import diagnostics, summarize
+from model_adaptation_lab.evaluation.retrieval import retrieval_metrics, summarize_retrieval
 from model_adaptation_lab.io import LabError, atomic_write, canonical, digest, file_hash
 from model_adaptation_lab.models.loader import (
     GenerationBackend,
@@ -18,15 +19,18 @@ from model_adaptation_lab.models.loader import (
     validate_configs,
     validate_prompts,
 )
+from model_adaptation_lab.retrieval.embedding import validate_retrieval
+from model_adaptation_lab.retrieval.retriever import FaissRetriever, Retriever
 from model_adaptation_lab.strategies.base import AnsweringStrategy, BaseStrategy
 from model_adaptation_lab.strategies.few_shot import FewShotStrategy
+from model_adaptation_lab.strategies.rag import RAGStrategy
 
 
 def validation_sample(
     rows: list[dict[str, Any]], limit: int | None, seed: int
 ) -> list[dict[str, Any]]:
     if any(r["split"] != "validation" for r in rows):
-        raise LabError("Phase 2 evaluation accepts validation only")
+        raise LabError("Development evaluation accepts validation only")
     if limit is not None and limit <= 0:
         raise LabError("Evaluation limit must be positive")
     # Alternate deterministically ordered strata to include both in a two-question smoke.
@@ -102,6 +106,11 @@ def evaluate_questions(
             try:
                 answer = replace(strategy.answer(row["question"]), question_id=row["question_id"])
                 record = asdict(answer) | {
+                    "retrieval_metrics": retrieval_metrics(
+                        answer.retrieved_chunks, answer.citation_document_ids, row
+                    )
+                    if strategy.name == "rag"
+                    else None,
                     "status": "ok",
                     "error": None,
                     "metrics": diagnostics(
@@ -140,11 +149,18 @@ def run_evaluation(
     limit: int | None,
     local_files_only: bool,
     backend: GenerationBackend | None = None,
+    retrieval_config: dict[str, Any] | None = None,
+    index_path: Path | None = None,
+    retriever: Retriever | None = None,
 ) -> dict[str, Any]:
-    if not strategy_names or any(s not in {"base", "prompt"} for s in strategy_names):
-        raise LabError("Only base and prompt strategies are implemented in Phase 2")
+    if not strategy_names or any(s not in {"base", "prompt", "rag"} for s in strategy_names):
+        raise LabError("Only base, prompt, and rag strategies are implemented")
     if len(set(strategy_names)) != len(strategy_names):
         raise LabError("Repeated strategies are not allowed")
+    if "rag" in strategy_names:
+        if retrieval_config is None or (index_path is None and retriever is None):
+            raise LabError("RAG requires retrieval configuration and a verified index")
+        validate_retrieval(retrieval_config)
     validate_configs(model, generation)
     validate_prompts(prompts)
     lock = verify(manifests)
@@ -175,6 +191,7 @@ def run_evaluation(
         "model_config": model,
         "generation_config": generation,
         "prompt_config": prompts,
+        "retrieval_config": retrieval_config,
         "strategy_order": strategy_names,
         "validation_ids": [r["question_id"] for r in rows],
         "validation_records_sha256": digest(canonical(rows)),
@@ -194,12 +211,28 @@ def run_evaluation(
             )
         state["model_metrics"] = backend.metadata
         state["effective_generation_parameters"] = backend.generation_parameters
-        strategies: list[BaseStrategy] = [
-            BaseStrategy(backend, prompts)
-            if name == "base"
-            else FewShotStrategy(backend, prompts, manifests, processed)
-            for name in strategy_names
-        ]
+        if "rag" in strategy_names:
+            assert retrieval_config is not None
+            if retriever is None:
+                assert index_path is not None
+                retriever = FaissRetriever(
+                    index_path,
+                    manifests,
+                    retrieval_config,
+                    cache,
+                    local_files_only,
+                    allow_smoke_index=smoke,
+                )
+            state["retrieval_index"] = retriever.metadata
+        strategies: list[BaseStrategy] = []
+        for name in strategy_names:
+            if name == "base":
+                strategies.append(BaseStrategy(backend, prompts))
+            elif name == "prompt":
+                strategies.append(FewShotStrategy(backend, prompts, manifests, processed))
+            else:
+                assert retriever is not None and retrieval_config is not None
+                strategies.append(RAGStrategy(backend, prompts, retriever, retrieval_config))
         state["demonstration_ids"] = {
             s.name: [r["question_id"] for r in s.demonstrations] for s in strategies
         }
@@ -216,6 +249,8 @@ def run_evaluation(
             path = output / f"{strategy.name}.jsonl"
             results = evaluate_questions(strategy, rows, path, prompts["abstention"])
             state["results"][strategy.name] = summarize(results) | {"file_sha256": file_hash(path)}
+            if strategy.name == "rag":
+                state["results"][strategy.name]["retrieval"] = summarize_retrieval(results)
             atomic_write(state_path, canonical(state))
         failures = sum(s["failed"] for s in state["results"].values())
         state["status"] = "partial_failure" if failures else "completed"
@@ -225,5 +260,7 @@ def run_evaluation(
         state["error"] = f"{type(exc).__name__}: {exc}"
         raise
     finally:
+        if isinstance(retriever, FaissRetriever):
+            retriever.close()
         state["finished_unix"] = time.time()
         atomic_write(state_path, canonical(state))
