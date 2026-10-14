@@ -13,6 +13,8 @@ dependencies = ["PyYAML>=6.0.2,<7"]
 inference = ["torch>=2.6,<3", "transformers>=4.57.1,<5"]
 retrieval = ["torch>=2.6,<3", "transformers>=4.57.1,<5", "numpy>=1.26,<3", "faiss-cpu>=1.10,<2"]
 
+training = ["torch>=2.6,<3", "transformers>=4.57.1,<5", "peft>=0.17,<0.19", "accelerate>=1.10,<2", "datasets>=4,<5", "mlflow>=3,<4", "matplotlib>=3.10,<4"]
+
 [project.scripts]
 model-lab = "model_adaptation_lab.cli:main"
 

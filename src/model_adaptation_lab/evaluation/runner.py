@@ -23,6 +23,8 @@ from model_adaptation_lab.retrieval.embedding import validate_retrieval
 from model_adaptation_lab.retrieval.retriever import FaissRetriever, Retriever
 from model_adaptation_lab.strategies.base import AnsweringStrategy, BaseStrategy
 from model_adaptation_lab.strategies.few_shot import FewShotStrategy
+from model_adaptation_lab.strategies.fine_tuned import FineTunedStrategy
+from model_adaptation_lab.strategies.fine_tuned_rag import FineTunedRAGStrategy
 from model_adaptation_lab.strategies.rag import RAGStrategy
 
 
@@ -109,7 +111,7 @@ def evaluate_questions(
                     "retrieval_metrics": retrieval_metrics(
                         answer.retrieved_chunks, answer.citation_document_ids, row
                     )
-                    if strategy.name == "rag"
+                    if strategy.name in {"rag", "lora-rag"}
                     else None,
                     "status": "ok",
                     "error": None,
@@ -152,12 +154,18 @@ def run_evaluation(
     retrieval_config: dict[str, Any] | None = None,
     index_path: Path | None = None,
     retriever: Retriever | None = None,
+    adapter_path: Path | None = None,
 ) -> dict[str, Any]:
-    if not strategy_names or any(s not in {"base", "prompt", "rag"} for s in strategy_names):
-        raise LabError("Only base, prompt, and rag strategies are implemented")
+    if not strategy_names or any(
+        s not in {"base", "prompt", "rag", "lora", "lora-rag"} for s in strategy_names
+    ):
+        raise LabError("Unknown strategy")
+    adapted = bool(set(strategy_names) & {"lora", "lora-rag"})
+    if adapted and (adapter_path is None or set(strategy_names) - {"lora", "lora-rag"}):
+        raise LabError("Adapted strategies need an adapter and a separate run from base strategies")
     if len(set(strategy_names)) != len(strategy_names):
         raise LabError("Repeated strategies are not allowed")
-    if "rag" in strategy_names:
+    if set(strategy_names) & {"rag", "lora-rag"}:
         if retrieval_config is None or (index_path is None and retriever is None):
             raise LabError("RAG requires retrieval configuration and a verified index")
         validate_retrieval(retrieval_config)
@@ -209,9 +217,15 @@ def run_evaluation(
             backend = TransformersBackend(
                 model, generation, cache, local_files_only=local_files_only
             )
+        if adapted:
+            from model_adaptation_lab.models.adapter import attach_adapter
+
+            if not isinstance(backend, TransformersBackend) or adapter_path is None:
+                raise LabError("Adapted evaluation requires the real verified adapter backend")
+            attach_adapter(backend, adapter_path, manifests, smoke=smoke)
         state["model_metrics"] = backend.metadata
         state["effective_generation_parameters"] = backend.generation_parameters
-        if "rag" in strategy_names:
+        if set(strategy_names) & {"rag", "lora-rag"}:
             assert retrieval_config is not None
             if retriever is None:
                 assert index_path is not None
@@ -228,11 +242,14 @@ def run_evaluation(
         for name in strategy_names:
             if name == "base":
                 strategies.append(BaseStrategy(backend, prompts))
+            elif name == "lora":
+                strategies.append(FineTunedStrategy(backend, prompts))
             elif name == "prompt":
                 strategies.append(FewShotStrategy(backend, prompts, manifests, processed))
             else:
                 assert retriever is not None and retrieval_config is not None
-                strategies.append(RAGStrategy(backend, prompts, retriever, retrieval_config))
+                strategy_type = FineTunedRAGStrategy if name == "lora-rag" else RAGStrategy
+                strategies.append(strategy_type(backend, prompts, retriever, retrieval_config))
         state["demonstration_ids"] = {
             s.name: [r["question_id"] for r in s.demonstrations] for s in strategies
         }
@@ -249,7 +266,7 @@ def run_evaluation(
             path = output / f"{strategy.name}.jsonl"
             results = evaluate_questions(strategy, rows, path, prompts["abstention"])
             state["results"][strategy.name] = summarize(results) | {"file_sha256": file_hash(path)}
-            if strategy.name == "rag":
+            if strategy.name in {"rag", "lora-rag"}:
                 state["results"][strategy.name]["retrieval"] = summarize_retrieval(results)
             atomic_write(state_path, canonical(state))
         failures = sum(s["failed"] for s in state["results"].values())

@@ -28,7 +28,9 @@ def parser() -> argparse.ArgumentParser:
     commands = root.add_subparsers(dest="command", required=True)
     evaluate = commands.add_parser("evaluate", help="Run real-model validation inference only")
     evaluate.add_argument(
-        "--strategy", choices=["base", "prompt", "both", "rag", "available"], required=True
+        "--strategy",
+        choices=["base", "prompt", "both", "rag", "available", "lora", "lora-rag", "adapted"],
+        required=True,
     )
     evaluate.add_argument("--model-config", type=Path, default=Path("configs/model.yaml"))
     evaluate.add_argument("--generation-config", type=Path, default=Path("configs/generation.yaml"))
@@ -59,6 +61,7 @@ def parser() -> argparse.ArgumentParser:
     )
     evaluate.add_argument("--retrieval-config", type=Path, default=Path("configs/retrieval.yaml"))
     evaluate.add_argument("--index-dir", type=Path, help="Required for rag or available strategies")
+    evaluate.add_argument("--adapter-dir", type=Path, help="Completed training run directory")
     evaluate.add_argument("--embedding-device", choices=["cpu", "cuda", "mps"])
     retrieval = commands.add_parser(
         "retrieval", help="Build/verify a frozen source-document FAISS index"
@@ -83,6 +86,25 @@ def parser() -> argparse.ArgumentParser:
                 help="Explicit QA-independent smoke subset; never a primary index",
             )
             cmd.add_argument("--local-files-only", action="store_true")
+    train = commands.add_parser("train", help="Fit real LoRA on guarded training data")
+    train.add_argument("--config", type=Path, default=Path("configs/training.yaml"))
+    train.add_argument("--model-config", type=Path, default=Path("configs/model.yaml"))
+    train.add_argument("--prompt-config", type=Path, default=Path("configs/prompts.yaml"))
+    train.add_argument("--generation-config", type=Path, default=Path("configs/generation.yaml"))
+    train.add_argument(
+        "--manifests-dir", type=Path, default=Path("data/manifests/techqa-internal-v1")
+    )
+    train.add_argument(
+        "--processed-dir", type=Path, default=Path("data/processed/techqa-internal-v1")
+    )
+    train.add_argument("--cache-dir", type=Path, default=Path("outputs/model-cache"))
+    train.add_argument("--output-dir", type=Path, required=True)
+    train.add_argument("--device", choices=["cuda", "mps", "cpu"])
+    train.add_argument("--fraction", type=float, choices=[0.25, 0.5, 1.0], default=1.0)
+    train.add_argument(
+        "--smoke", action="store_true", help="Real two-step training on four records per split"
+    )
+    train.add_argument("--local-files-only", action="store_true")
     data = commands.add_parser("data", help="Download, audit, freeze, or verify data")
     actions = data.add_subparsers(dest="action", required=True)
     for name, help_text in (
@@ -108,6 +130,27 @@ def parser() -> argparse.ArgumentParser:
 def main(argv: list[str] | None = None) -> int:
     args = parser().parse_args(argv)
     try:
+        if args.command == "train":
+            from model_adaptation_lab.models.lora import train_lora
+
+            model = yaml_config(args.model_config)
+            if args.device:
+                model["device"] = args.device
+            state = train_lora(
+                config=yaml_config(args.config),
+                model_config=model,
+                generation=yaml_config(args.generation_config),
+                prompts=yaml_config(args.prompt_config),
+                manifests=args.manifests_dir,
+                processed=args.processed_dir,
+                output=args.output_dir,
+                cache=args.cache_dir,
+                local_files_only=args.local_files_only,
+                smoke=args.smoke,
+                fraction=args.fraction,
+            )
+            print(f"Training {state['status']}: {args.output_dir / 'training.json'}")
+            return 0
         if args.command == "retrieval":
             if args.retrieval_action == "verify":
                 result = verify_index(args.index_dir, args.manifests_dir)
@@ -140,10 +183,14 @@ def main(argv: list[str] | None = None) -> int:
                 generation["max_new_tokens"] = min(generation.get("max_new_tokens", 64), 64)
             if args.limit is not None and args.limit <= 0:
                 raise LabError("--limit must be positive")
-            names = {"both": ["base", "prompt"], "available": ["base", "prompt", "rag"]}.get(
-                args.strategy, [args.strategy]
+            names = {
+                "both": ["base", "prompt"],
+                "available": ["base", "prompt", "rag"],
+                "adapted": ["lora", "lora-rag"],
+            }.get(args.strategy, [args.strategy])
+            retrieval_config = (
+                yaml_config(args.retrieval_config) if set(names) & {"rag", "lora-rag"} else None
             )
-            retrieval_config = yaml_config(args.retrieval_config) if "rag" in names else None
             if retrieval_config is not None and args.embedding_device:
                 retrieval_config["embedding"]["device"] = args.embedding_device
             state = run_evaluation(
@@ -160,6 +207,7 @@ def main(argv: list[str] | None = None) -> int:
                 local_files_only=args.local_files_only,
                 retrieval_config=retrieval_config,
                 index_path=args.index_dir,
+                adapter_path=args.adapter_dir,
             )
             print(f"Validation run {state['status']}: {args.output_dir / 'run.json'}")
             return 0 if state["status"] == "completed" else 1
