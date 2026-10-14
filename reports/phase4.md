@@ -169,3 +169,10 @@ Next: milestone two—build and validate the development quality evaluator, incl
 rubric, semantic/reference checks, retrieved-versus-reference evidence support, and stratified
 human review. Then predeclare the final analysis and ablations before releasing the internal
 holdout. Portfolio publication remains pending those results and an evidence-based conclusion.
+
+Final tracking verification found and fixed a directory-existence typo that skipped the
+MLflow code-snapshot upload while preserving it locally. The exact original snapshots for
+both completed runs were checked against their recorded hashes and uploaded afterward.
+Each run retains a `tracking_repair.json` artifact and repair tag. Training metadata,
+checkpoint metrics, and adapter bytes were unchanged. A regression test now requires the
+snapshot directory to be logged even on a failed training attempt.

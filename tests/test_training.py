@@ -185,6 +185,7 @@ def test_failed_training_persists_state_and_marks_mlflow_failed(
 
         def log_artifacts(self, path, artifact_path):
             assert Path(path).is_dir()
+            calls.append(("artifact_directory", artifact_path))
 
         def end_run(self, status):
             calls.append(("end", status))
@@ -215,7 +216,13 @@ def test_failed_training_persists_state_and_marks_mlflow_failed(
         lora, "importlib", SimpleNamespace(import_module=lambda name: modules[name])
     )
     monkeypatch.setattr(lora, "capture_environment", lambda: {"fixture": "synthetic"})
-    monkeypatch.setattr(lora, "snapshot_code", lambda output: {})
+
+    def synthetic_snapshot(output):
+        (output / "code_snapshot").mkdir()
+        (output / "code_snapshot" / "fixture.txt").write_text("synthetic")
+        return {}
+
+    monkeypatch.setattr(lora, "snapshot_code", synthetic_snapshot)
     manifests, processed = synthetic_protocol
     output = tmp_path / "failed-training"
     with pytest.raises(LabError, match="memory"):
@@ -236,4 +243,5 @@ def test_failed_training_persists_state_and_marks_mlflow_failed(
     assert state["training_gpu_hours"] is None
     assert state["mlflow_run_id"] == "synthetic-run"
     assert calls[-1] == ("end", "FAILED")
+    assert ("artifact_directory", "code_snapshot") in calls
     assert "out of memory" in state["error"]

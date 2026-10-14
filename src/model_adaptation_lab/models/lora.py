@@ -287,9 +287,8 @@ def train_lora(
                 }
             )
             mlflow.log_artifact(str(state_path))
-            mlflow.log_artifacts(str(output / "code_snapshot"), artifact_path="code_snapshot") if (
-                output / "code"
-            ).exists() else None
+            if (output / "code_snapshot").exists():
+                mlflow.log_artifacts(str(output / "code_snapshot"), artifact_path="code_snapshot")
             for name in ("loss_history.json", "loss_curves.png"):
                 if (output / name).exists():
                     mlflow.log_artifact(str(output / name))
