@@ -22,8 +22,11 @@ traceable local runs, real float32 MPS smoke, and documented float16 failures. S
 CPU FAISS, shared RAG evaluation, retrieval metrics, and a real full-index validation smoke.
 See `phase3.md`; 82 CPU-only tests pass. Final holdout access remains sealed.
 
-**Next concrete step:** implement Phase 4 assistant-only LoRA training and MLflow metadata,
-then execute a small CUDA training run on a suitable host before adapted validation inference.
+**Phase 4 training executed locally:** real three-epoch rank-8 MPS fitting with MLflow,
+loss curves, and validation-selected adapter checkpoint. See `phase4.md`.
+
+**Next concrete step:** milestone two in `milestones.md`: build and validate the quality
+evaluator on development data. Keep the final holdout sealed pending the release procedure.
 
 ## Phase roadmap
 

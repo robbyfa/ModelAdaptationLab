@@ -1,0 +1,124 @@
+{
+  "artifact_directory": "outputs/phase4-adapted-smoke-mps-v1",
+  "freeze_sha256": "41e3f9faa1b0fabd810c2bf19fcca8ddc3b6effa1887c1e11778a6e56f6c4fe2",
+  "generation_config": {
+    "do_sample": false,
+    "max_input_tokens": 4096,
+    "max_new_tokens": 64,
+    "num_beams": 1,
+    "schema_version": 1,
+    "seed": 42,
+    "use_cache": true
+  },
+  "interpretation": "Two validation examples; execution evidence only, no performance conclusion",
+  "model_config": {
+    "device": "mps",
+    "dtype": "float32",
+    "license": "Apache-2.0",
+    "model_id": "Qwen/Qwen2.5-1.5B-Instruct",
+    "revision": "989aa7980e4cf806f80c7fef2b1adb7bc71aa306",
+    "tokenizer_revision": "989aa7980e4cf806f80c7fef2b1adb7bc71aa306",
+    "trust_remote_code": false
+  },
+  "model_metrics": {
+    "adapter": {
+      "files": {
+        "README.md": "a839852526731cfbe84a5bf6e6986bd5b0d306926a47c910b0d83dc23c7cb16c",
+        "adapter_config.json": "02f0e8ef5ae4f78dfebc660b5f553a80a46667e31540f90fe374a5e9b6d34057",
+        "adapter_model.safetensors": "7d92f73e3c3a23ce5e7643a85509ed081efea7e1201387489345e99e91a9c994",
+        "added_tokens.json": "58b54bbe36fc752f79a24a271ef66a0a0830054b4dfad94bde757d851968060b",
+        "chat_template.jinja": "cd8e9439f0570856fd70470bf8889ebd8b5d1107207f67a5efb46e342330527f",
+        "merges.txt": "8831e4f1a044471340f7c0a83d7bd71306a5b867e95fd870f74d0c5308a904d5",
+        "special_tokens_map.json": "76862e765266b85aa9459767e33cbaf13970f327a0e88d1c65846c2ddd3a1ecd",
+        "tokenizer.json": "9c5ae00e602b8860cbd784ba82a8aa14e8feecec692e7076590d014d7b7fdafa",
+        "tokenizer_config.json": "0a04a9d7d4a62b28482bdfe726c122756de85714fb64166ace92ae75b8f57614",
+        "training_args.bin": "6be7f056dca4e9c2defa10985cb6d086da055ca6a62e35368a6382062592c523",
+        "vocab.json": "ca10d7e9fb3ed18575dd1e277a2579c16d108e32f27439684afa0e10b1440910"
+      },
+      "format": "question_only_v1",
+      "mlflow_run_id": "8d6352dfc97245fb9c8d2cafa6f8221d",
+      "scope": "training",
+      "training_metadata_sha256": "ba5370341074f9832f2a7a5494eef993219a0249d5116f4691eab273bba1da2b",
+      "weights_merged": false
+    },
+    "attention_implementation": "eager",
+    "backend": "transformers",
+    "chat_template_sha256": "cd8e9439f0570856fd70470bf8889ebd8b5d1107207f67a5efb46e342330527f",
+    "cuda_version": null,
+    "device": "mps",
+    "dtype": "float32",
+    "finite_score_guard": "every decoding step; synchronization overhead included",
+    "gpu_name": null,
+    "memory_scope": "CUDA per-question peak including resident model; null on CPU/MPS",
+    "model_load_ms": 13175.693208002485,
+    "packages": {
+      "safetensors": "0.8.0",
+      "tokenizers": "0.22.2",
+      "torch": "2.14.1",
+      "transformers": "4.57.6"
+    },
+    "platform": "macOS-26.7.1-arm64-arm-64bit",
+    "python": "3.12.12",
+    "timing_scope": "synchronized generate() includes prefill; model loading separate"
+  },
+  "results": {
+    "lora": {
+      "appropriate_abstention_annotation_scoped": 0.0,
+      "appropriate_abstention_annotation_scoped_denominator": 1,
+      "attempted": 2,
+      "failed": 0,
+      "file_sha256": "ec9268d48fddcc9d25488392b46b62f1b3b384b07c914e11771ac7ed959cb623",
+      "inference_cost_per_1000": null,
+      "input_tokens": 264,
+      "latency_p50_ms": 3339.0586875611916,
+      "latency_p95_ms": 5396.367769129574,
+      "normalized_exact_match": 0.0,
+      "normalized_exact_match_denominator": 1,
+      "output_tokens": 76,
+      "quality_scope": "lexical/abstention diagnostics only; unavailable metrics are null",
+      "succeeded": 2,
+      "token_f1_diagnostic": 0.046511627906976744,
+      "token_f1_diagnostic_denominator": 1,
+      "training_gpu_hours": null,
+      "unnecessary_abstention": 1.0,
+      "unnecessary_abstention_denominator": 1
+    },
+    "lora-rag": {
+      "appropriate_abstention_annotation_scoped": 1.0,
+      "appropriate_abstention_annotation_scoped_denominator": 1,
+      "attempted": 2,
+      "failed": 0,
+      "file_sha256": "1b71f507d034dccd9b139b9e46cd4ec930d7a179687d61d7cf231532e8082458",
+      "inference_cost_per_1000": null,
+      "input_tokens": 3925,
+      "latency_p50_ms": 4114.4823745125905,
+      "latency_p95_ms": 4848.902661853936,
+      "normalized_exact_match": 0.0,
+      "normalized_exact_match_denominator": 1,
+      "output_tokens": 45,
+      "quality_scope": "lexical/abstention diagnostics only; unavailable metrics are null",
+      "retrieval": {
+        "annotated_document_recall_at_k": 1.0,
+        "annotated_document_recall_at_k_denominator": 1,
+        "annotated_span_recall_at_k": 0.0,
+        "annotated_span_recall_at_k_denominator": 1,
+        "precision_at_k": null,
+        "retrieval_latency_ms_mean": 28.140228940173984
+      },
+      "succeeded": 2,
+      "token_f1_diagnostic": 0.19230769230769232,
+      "token_f1_diagnostic_denominator": 1,
+      "training_gpu_hours": null,
+      "unnecessary_abstention": 0.0,
+      "unnecessary_abstention_denominator": 1
+    }
+  },
+  "run_id": "phase4-adapted-smoke-mps-v1",
+  "scope": "validation_only",
+  "smoke": true,
+  "status": "completed",
+  "validation_ids": [
+    "DEV_Q161",
+    "DEV_Q222"
+  ]
+}
