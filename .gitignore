@@ -18,3 +18,7 @@ checkpoints/
 *.pt
 *.bin
 .env
+
+# Local browser verification artifacts
+.playwright-cli/
+output/playwright/

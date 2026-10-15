@@ -505,3 +505,116 @@ def test_quote_lookup_preserves_unicode_offsets_and_scope(quality_packet, tmp_pa
     atomic_write(output / "cases.jsonl", b"{}\n")
     with pytest.raises(LabError, match="changed"):
         quote_matches(output, case["item_id"], "doc", "aba", "reference")
+
+
+def test_interactive_page_encodes_adversarial_text(quality_packet, tmp_path):
+    packet, *_ = quality_packet
+    manifest, cases = verify_packet(packet)
+    cases[0]["answer"] = "</script><img src=x onerror=alert(1)>\u2028😀"
+    atomic_write(packet / "cases.jsonl", jsonl(cases))
+    manifest["files"]["cases.jsonl"] = file_hash(packet / "cases.jsonl")
+    atomic_write(packet / "manifest.json", canonical(manifest))
+    output = tmp_path / "interactive.html"
+    render_packet(packet, output)
+    html = output.read_text()
+    assert "</script><img" not in html
+    assert r"\u003c/script\u003e" in html
+    assert "connect-src 'none'" in html
+    assert "Export completed ratings" in html
+    assert "mapping.json" not in html
+
+
+def test_browser_validation_matches_python_for_synthetic_reviews(quality_packet):
+    import shutil
+    import subprocess
+
+    node = shutil.which("node")
+    if not node:
+        pytest.skip("Node required for offline reviewer validation contract")
+    packet, _, _, docs, _ = quality_packet
+    review, cases = completed_review(packet, docs)
+    samples = []
+    for rating in review["items"]:
+        case = cases[rating["item_id"]]
+        samples.append((rating, case))
+        for field, value in [
+            ("rationale", ""),
+            ("correctness", 5),
+            ("reviewed_document_ids", ["unknown"]),
+            ("reference_sufficiency", None),
+            ("claims", []),
+        ]:
+            bad = copy.deepcopy(rating)
+            bad[field] = value
+            samples.append((bad, case))
+        for field, value in [
+            ("kind", None),
+            ("rationale", ""),
+            ("start", -1),
+            ("text", "altered"),
+            ("reference_evidence", []),
+            ("citation_support", "supported"),
+        ]:
+            if rating["claims"]:
+                bad = copy.deepcopy(rating)
+                bad["claims"][0][field] = value
+                samples.append((bad, case))
+    expected = []
+    for rating, case in samples:
+        try:
+            validate_rating(rating, case, docs)
+            expected.append(True)
+        except LabError:
+            expected.append(False)
+    script = """
+const fs=require('fs');
+const api=require(process.argv[1]);
+const input=JSON.parse(fs.readFileSync(0,'utf8'));
+console.log(JSON.stringify(input.samples.map(([r,c])=>api.validate(r,c,input.docs).length===0)));
+"""
+    result = subprocess.run(
+        [
+            node,
+            "-e",
+            script,
+            str(Path("src/model_adaptation_lab/evaluation/quality/reviewer.js").resolve()),
+        ],
+        input=json.dumps({"samples": samples, "docs": docs}),
+        text=True,
+        capture_output=True,
+        check=True,
+    )
+    assert json.loads(result.stdout) == expected
+
+
+def test_browser_claim_edits_preserve_unicode_and_reset_judgments():
+    import shutil
+    import subprocess
+
+    node = shutil.which("node")
+    if not node:
+        pytest.skip("Node required for offline reviewer segmentation contract")
+    script = """
+const assert=require('assert/strict');const api=require(process.argv[1]);
+const r={claims:[{text:'😀 advice. Next.',start:0,end:15,kind:'factual',
+reference_support:'supported'}]};
+api.splitClaim(r,0,9);
+assert.equal(r.claims[0].text,'😀 advice.');
+assert.equal(r.claims[1].start,9);
+assert.equal(r.claims[0].reference_support,null);
+api.mergeClaim(r,0,'😀 advice. Next.');
+assert.equal(r.claims[0].text,'😀 advice. Next.');
+assert.equal(r.claims[0].kind,null);
+assert.throws(()=>api.splitClaim(r,0,0));
+"""
+    subprocess.run(
+        [
+            node,
+            "-e",
+            script,
+            str(Path("src/model_adaptation_lab/evaluation/quality/reviewer.js").resolve()),
+        ],
+        check=True,
+        capture_output=True,
+        text=True,
+    )

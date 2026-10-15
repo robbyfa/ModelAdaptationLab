@@ -75,3 +75,6 @@ uv run mypy
 validated evaluator before executing the
 five-way benchmark and predeclared ablations. Portfolio publication waits for measured
 findings and an evidence-based conclusion.
+
+The [offline reviewer guide](reports/reviewer-interface-v1.md) explains claim editing, exact
+evidence selection, draft backups, and compatible ratings exports. Human validation is pending.

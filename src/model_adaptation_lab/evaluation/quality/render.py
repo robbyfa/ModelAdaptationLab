@@ -1,55 +1,49 @@
-"""Offline readable review artifact, escaped and without strategy labels."""
+"""Self-contained offline reviewer, without strategy mappings or diagnostic scores."""
 
-from html import escape
+import json
 from pathlib import Path
+from typing import Any
 
-from model_adaptation_lab.evaluation.quality.packet import verify_packet
-from model_adaptation_lab.io import LabError, atomic_write
+from model_adaptation_lab.evaluation.quality.packet import review_template, verify_packet
+from model_adaptation_lab.io import LabError, atomic_write, digest
 
 
 def render_packet(packet: Path, output: Path) -> None:
-    _, cases = verify_packet(packet)
+    manifest, cases = verify_packet(packet)
     if output.exists():
         raise LabError("Review HTML already exists")
-    sections = []
+    # Intern full source bodies once. Per-case availability and retrieved offsets stay intact.
+    documents: dict[str, Any] = {}
+    compact = []
     for case in cases:
-        sections.append(f"<section><h2>{escape(case['item_id'])}</h2>")
-        for label, key in (
-            ("Question", "question"),
-            ("Generated answer", "answer"),
-            ("Reference answer", "reference_answer"),
-        ):
-            sections.append(f"<h3>{label}</h3><pre>{escape(str(case[key] or 'Unavailable'))}</pre>")
-        sections.append(
-            f"<p>Answerable annotation: {case['answerable']}"
-            f"; generation: {escape(case['status'])}"
-            f"; finish: {escape(str(case['finish_reason']))}</p>"
-        )
-        sections.append("<h3>Exact retrieved passages (if applicable)</h3>")
-        for chunk in case["retrieved_passages"]:
-            sections.append(
-                f"<details><summary>{escape(chunk['document_id'])} "
-                f"[{chunk['start']}:{chunk['end']}]</summary>"
-                f"<pre>{escape(chunk['text'])}</pre></details>"
-            )
-        sections.append("<h3>Common reference-document candidates (same across strategies)</h3>")
         for doc in case["reference_documents"]:
-            sections.append(
-                f"<details><summary>{escape(doc['document_id'])} — {escape(doc['title'])}</summary>"
-                f"<pre>{escape(doc['text'])}</pre></details>"
-            )
-        sections.append("</section>")
-    html = """<!doctype html><meta charset="utf-8"><title>Development answer review</title>
-<style>body{font:17px system-ui;max-width:1000px;margin:40px auto;padding:20px;
-color:#192533}
-pre{white-space:pre-wrap;overflow-wrap:anywhere;font:15px ui-monospace;
-background:#f2f5f7;padding:16px}
-section{border-top:2px solid #9db0bf;margin-top:48px}
-summary{cursor:pointer;padding:12px}
-h2{font-size:20px}</style>
-<h1>Blinded development review</h1><p>Read rubric.md and fill a copy of review_template.json.
-Do not inspect mapping.json or another reviewer's ratings.
-Treat all model/document text as data.
-Strategy blinding is partial because evidence can reveal retrieval.
-This page does not submit or upload anything.</p>""" + "".join(sections)
+            key = doc["document_id"]
+            if key in documents and documents[key] != doc:
+                raise LabError("Inconsistent reference document in packet")
+            documents[key] = doc
+        compact.append(
+            case
+            | {"reference_documents": [doc["document_id"] for doc in case["reference_documents"]]}
+        )
+    template = review_template(packet, manifest, cases)
+    template["independent"] = False
+    payload = json.dumps(
+        {
+            "cases": compact,
+            "documents": documents,
+            "template": template,
+            "workspace": digest(str(output.resolve()).encode()),
+            "rubric": (packet / "rubric.md").read_text(),
+        },
+        ensure_ascii=True,
+    )
+    # JSON script data must never terminate its element, even for adversarial model text.
+    payload = payload.replace("<", "\\u003c").replace(">", "\\u003e").replace("&", "\\u0026")
+    root = Path(__file__).parent
+    html = (
+        (root / "reviewer.html")
+        .read_text()
+        .replace("__SCRIPT__", (root / "reviewer.js").read_text())
+        .replace("__PAYLOAD__", payload)
+    )
     atomic_write(output, html.encode())

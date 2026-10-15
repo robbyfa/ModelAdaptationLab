@@ -1,0 +1,302 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; connect-src 'none'; img-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'"
+    />
+    <title>Independent answer review</title>
+    <style>
+      :root {
+        font: 16px system-ui;
+        color: #192f3d;
+        background: #eef2f4;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+      }
+      header {
+        padding: 18px 28px;
+        background: #123c47;
+        color: white;
+      }
+      header h1 {
+        font-size: 24px;
+        margin: 0 0 8px;
+      }
+      button,
+      select,
+      input,
+      textarea {
+        font: inherit;
+        border: 1px solid #899da7;
+        border-radius: 5px;
+        padding: 8px;
+        background: white;
+        color: #192f3d;
+      }
+      button {
+        cursor: pointer;
+      }
+      button:hover {
+        background: #e1f3f1;
+      }
+      button:disabled {
+        opacity: 0.5;
+        cursor: default;
+      }
+      button.primary {
+        background: #17685d;
+        color: white;
+      }
+      label {
+        display: block;
+        margin: 10px 0;
+      }
+      input[type="checkbox"] {
+        margin-right: 8px;
+      }
+      textarea {
+        width: 100%;
+        min-height: 70px;
+      }
+      select {
+        max-width: 100%;
+      }
+      pre {
+        white-space: pre-wrap;
+        overflow-wrap: anywhere;
+        font: 14px/1.65 ui-monospace;
+        margin: 10px 0;
+        background: #f4f7f8;
+        padding: 14px;
+      }
+      h2 {
+        font-size: 20px;
+      }
+      h3 {
+        font-size: 17px;
+      }
+      p {
+        line-height: 1.5;
+      }
+      .toolbar {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        align-items: center;
+        padding: 12px 24px;
+        background: white;
+        border-bottom: 1px solid #c8d4da;
+      }
+      .layout {
+        display: grid;
+        grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+        gap: 20px;
+        padding: 20px;
+      }
+      .panel {
+        background: white;
+        border: 1px solid #d1dce1;
+        border-radius: 8px;
+        padding: 20px;
+        min-width: 0;
+      }
+      .evidence {
+        position: sticky;
+        top: 12px;
+        align-self: start;
+        max-height: 94vh;
+        overflow: auto;
+      }
+      .claim {
+        border: 1px solid #bcced4;
+        padding: 14px;
+        margin: 14px 0;
+        border-radius: 6px;
+      }
+      .claim.active {
+        border: 2px solid #17685d;
+      }
+      .muted {
+        font-size: 14px;
+        color: #526976;
+      }
+      .notice {
+        padding: 12px;
+        background: #fff3d6;
+        color: #513c0d;
+      }
+      .error {
+        color: #9a2920;
+      }
+      #message {
+        min-height: 25px;
+        padding: 10px 24px;
+      }
+      #errors {
+        white-space: pre-wrap;
+      }
+      #source {
+        max-height: 48vh;
+        overflow: auto;
+      }
+      summary {
+        cursor: pointer;
+        padding: 8px;
+      }
+      .row {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        align-items: center;
+      }
+      .small {
+        font-size: 13px;
+      }
+      .quote {
+        border-left: 3px solid #17685d;
+        padding-left: 10px;
+      }
+      #login {
+        max-width: 700px;
+        margin: 30px auto;
+      }
+      a {
+        color: #17685d;
+      }
+      button:focus-visible,
+      select:focus-visible,
+      input:focus-visible,
+      textarea:focus-visible {
+        outline: 3px solid #c28008;
+        outline-offset: 2px;
+      }
+      @media (max-width: 900px) {
+        .layout {
+          grid-template-columns: 1fr;
+        }
+        .evidence {
+          position: static;
+          max-height: none;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>Independent answer review</h1>
+      <div>
+        One response at a time · Offline · No automatic quality judgments
+      </div>
+    </header>
+    <section id="login" class="panel">
+      <h2>Your review workspace</h2>
+      <p>
+        Read the <a href="rubric.md" target="_blank">unchanged rubric</a> before
+        rating. Use your own reviewer ID and bundle. Do not consult another
+        person's ratings. Retrieval evidence can reveal method use, so blinding
+        is partial.
+      </p>
+      <label>Reviewer ID <input id="identity" autocomplete="off" /></label
+      ><button id="start" class="primary">Start / resume my review</button>
+      <p class="muted">
+        Progress is saved locally when browser storage is available. Download
+        draft backups regularly; browser storage can be cleared. Nothing is
+        submitted or uploaded.
+      </p>
+    </section>
+    <div id="message" role="status" aria-live="polite"></div>
+    <details class="panel">
+      <summary>Read the unchanged rubric</summary>
+      <pre id="rubric"></pre>
+    </details>
+    <main id="app" hidden>
+      <div class="toolbar">
+        <strong id="who"></strong
+        ><label
+          ><input id="independent" type="checkbox" />I completed these ratings
+          independently</label
+        ><button id="backup">Download draft</button
+        ><label
+          >Restore my draft
+          <input
+            id="restore"
+            type="file"
+            accept="application/json,.json" /></label
+        ><button id="export" class="primary">Export completed ratings</button>
+      </div>
+      <nav class="toolbar" aria-label="Response navigation">
+        <button id="prev">Previous</button
+        ><select id="jump" aria-label="Response"></select
+        ><button id="next">Next</button><span id="progress"></span
+        ><button id="complete">Validate &amp; mark complete</button>
+      </nav>
+      <div class="layout">
+        <section class="panel">
+          <div id="case"></div>
+          <h2>Response assessment</h2>
+          <div id="rating"></div>
+          <h2>Claim segmentation</h2>
+          <p class="muted">
+            Suggestions are not judgments. Split compound assertions before
+            rating. Place the caret in a claim's text and split, or merge
+            adjacent claims. Structural edits clear affected judgments and
+            completion.
+          </p>
+          <div id="claims"></div>
+          <pre id="errors" class="error" role="alert"></pre>
+        </section>
+        <aside class="panel evidence">
+          <h2>Evidence workspace</h2>
+          <p class="muted">
+            Select a claim, then highlight exact source text to attach a quote.
+            Matching text proves provenance, not support. Inspect versions,
+            algorithms, prerequisites and remediation separately.
+          </p>
+          <label
+            >Evidence scope
+            <select id="scope">
+              <option value="reference">Common reference candidates</option>
+              <option value="retrieved">Passages supplied to model</option>
+            </select></label
+          ><label
+            >Document / passage
+            <select id="document"></select></label
+          ><label
+            ><input type="checkbox" id="reviewed" />I reviewed this document for
+            this response</label
+          >
+          <div class="row">
+            <input
+              id="search"
+              aria-label="Find literal source text"
+              placeholder="Find exact text"
+            /><button id="find">Find next</button>
+          </div>
+          <p id="sourceinfo" class="muted"></p>
+          <pre id="source" tabindex="0"></pre>
+          <button id="attach" class="primary">
+            Attach selected quote to active claim
+          </button>
+          <p id="active" class="muted"></p>
+          <p class="small">
+            Reviewed-document declarations are per response. Documents are
+            stored once in this page; judgments never carry over automatically.
+          </p>
+        </aside>
+      </div>
+    </main>
+    <script id="payload" type="application/json">
+      __PAYLOAD__
+    </script>
+    <script>
+      __SCRIPT__;
+    </script>
+  </body>
+</html>
