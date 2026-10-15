@@ -154,3 +154,33 @@ ones. Preserve reference defects and scope disagreements. If the rubric changes,
 and validate on a separate development sample. A later validity report must justify readiness;
 no final-release command or holdout access was added here. Model tuning, final benchmarking,
 ablations, and portfolio claims remain outside this measurement milestone.
+
+## Reviewer handoff
+
+Two local reviewer-only bundles are ready at `outputs/quality-reviewer-a-v1` and
+`outputs/quality-reviewer-b-v1`. Each contains the same 60 cases, rubric, offline HTML,
+configuration, fresh unrated template, instructions, and file hashes. Strategy mappings,
+similarity diagnostics, run paths, and other reviewers' ratings are excluded. No bundle has
+been sent to anyone and no reviewer identity or independence is assumed. Copy the template
+to a new ratings file; explicitly declare independence only when accurate. Ratings remain
+bound to the original packet hash for import with `quality score`.
+
+```bash
+uv run model-lab quality bundle --packet outputs/quality-review-v1 \
+  --output-dir outputs/new-reviewer-bundle
+# Put the exact quotation in a UTF-8 file; newlines are significant.
+uv run model-lab quality quote --packet outputs/new-reviewer-bundle \
+  --item-id ITEM --document-id DOCUMENT --quote-file outputs/quote.txt --scope reference
+# Use --scope retrieved for matches entirely inside supplied passages.
+```
+
+The quote helper returns every matching occurrence with Python Unicode character offsets
+(end exclusive), so reviewers can choose the intended occurrence. No match returns an empty
+list; unknown item/document scope is an error. Literal matching checks provenance only,
+not factual support. The helper verifies bundle file hashes; editable ratings belong in a
+separate file. Hashes detect accidental changes, not malicious replacement of a whole bundle.
+
+Two additional synthetic tests verify bundle exclusion, fresh forms after template edits,
+overwrite protection, Unicode/repeated-quote offsets, retrieved-scope restriction, missing
+matches, and changed bundle rejection. The full suite now has 115 CPU-only passes with one
+optional dependency skip, or 116 passes with the local training dependencies installed.

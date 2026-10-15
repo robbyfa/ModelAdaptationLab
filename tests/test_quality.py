@@ -457,3 +457,51 @@ def test_tracking_incomplete_review_remains_explicit(quality_packet, tmp_path, m
             output=tmp_path / "remote.json",
             tracking_uri="https://example.invalid",
         )
+
+
+def test_reviewer_bundle_excludes_analysis_and_resets_edited_template(quality_packet, tmp_path):
+    from model_adaptation_lab.evaluation.quality.handoff import BUNDLE_FILES, export_bundle
+
+    packet, _, _, docs, _ = quality_packet
+    edited, _ = completed_review(packet, docs)
+    atomic_write(packet / "review_template.json", canonical(edited))
+    output = tmp_path / "reviewer"
+    export_bundle(packet, output)
+    assert {p.name for p in output.iterdir()} == BUNDLE_FILES | {"bundle.json"}
+    template = json.loads((output / "review_template.json").read_text())
+    assert template["reviewer_id"] == ""
+    assert template["independent"] is False
+    assert template["packet_sha256"] == file_hash(packet / "manifest.json")
+    assert all(item["behavior"] is None for item in template["items"])
+    with pytest.raises(LabError, match="already exists"):
+        export_bundle(packet, output)
+
+
+def test_quote_lookup_preserves_unicode_offsets_and_scope(quality_packet, tmp_path):
+    from model_adaptation_lab.evaluation.quality.handoff import export_bundle, quote_matches
+
+    packet, *_ = quality_packet
+    # Synthetic mutation with recomputed packet hash to exercise repeated Unicode text.
+    manifest, cases = verify_packet(packet)
+    case = cases[0]
+    case["reference_documents"] = [
+        {"document_id": "doc", "title": "Synthetic", "text": "éx aba aba"}
+    ]
+    case["retrieved_passages"] = [{"document_id": "doc", "start": 7, "end": 10, "text": "aba"}]
+    atomic_write(packet / "cases.jsonl", jsonl(cases))
+    manifest["files"]["cases.jsonl"] = file_hash(packet / "cases.jsonl")
+    atomic_write(packet / "manifest.json", canonical(manifest))
+    output = tmp_path / "reviewer"
+    export_bundle(packet, output)
+    for source in (packet, output):
+        matches = quote_matches(source, case["item_id"], "doc", "aba", "reference")
+        assert [m["start"] for m in matches] == [3, 7]
+        assert quote_matches(source, case["item_id"], "doc", "aba", "retrieved") == matches[1:]
+        assert quote_matches(source, case["item_id"], "doc", "absent", "reference") == []
+        with pytest.raises(LabError, match="unavailable"):
+            quote_matches(source, case["item_id"], "missing", "aba", "reference")
+        with pytest.raises(LabError, match="nonempty"):
+            quote_matches(source, case["item_id"], "doc", "", "reference")
+    atomic_write(output / "cases.jsonl", b"{}\n")
+    with pytest.raises(LabError, match="changed"):
+        quote_matches(output, case["item_id"], "doc", "aba", "reference")

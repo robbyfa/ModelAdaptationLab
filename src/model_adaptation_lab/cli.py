@@ -127,6 +127,15 @@ def parser() -> argparse.ArgumentParser:
     render = qa.add_parser("render", help="Render an escaped offline review page")
     render.add_argument("--packet", type=Path, required=True)
     render.add_argument("--output", type=Path, required=True)
+    bundle = qa.add_parser("bundle", help="Export reviewer materials without strategy mappings")
+    bundle.add_argument("--packet", type=Path, required=True)
+    bundle.add_argument("--output-dir", type=Path, required=True)
+    quote = qa.add_parser("quote", help="Find exact evidence offsets; does not judge support")
+    quote.add_argument("--packet", type=Path, required=True)
+    quote.add_argument("--item-id", required=True)
+    quote.add_argument("--document-id", required=True)
+    quote.add_argument("--quote-file", type=Path, required=True)
+    quote.add_argument("--scope", choices=["reference", "retrieved"], required=True)
     train = commands.add_parser("train", help="Fit real LoRA on guarded training data")
     train.add_argument("--config", type=Path, default=Path("configs/training.yaml"))
     train.add_argument("--model-config", type=Path, default=Path("configs/model.yaml"))
@@ -172,7 +181,25 @@ def main(argv: list[str] | None = None) -> int:
     args = parser().parse_args(argv)
     try:
         if args.command == "quality":
-            if args.quality_action == "prepare":
+            if args.quality_action == "bundle":
+                from model_adaptation_lab.evaluation.quality.handoff import export_bundle
+
+                export_bundle(args.packet, args.output_dir)
+                print(f"Reviewer-only bundle: {args.output_dir}; no ratings supplied")
+            elif args.quality_action == "quote":
+                import json
+
+                from model_adaptation_lab.evaluation.quality.handoff import quote_matches
+
+                matches = quote_matches(
+                    args.packet,
+                    args.item_id,
+                    args.document_id,
+                    args.quote_file.read_bytes().decode("utf-8"),
+                    args.scope,
+                )
+                print(json.dumps(matches, ensure_ascii=False, indent=2))
+            elif args.quality_action == "prepare":
                 from model_adaptation_lab.evaluation.quality.packet import prepare_packet
 
                 prepare_packet(

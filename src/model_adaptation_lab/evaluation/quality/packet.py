@@ -273,9 +273,18 @@ def prepare_packet(
         },
     }
     atomic_write(output / "manifest.json", canonical(manifest))
-    template = {
+    template = review_template(output, manifest, cases)
+    atomic_write(output / "review_template.json", canonical(template))
+    return manifest
+
+
+def review_template(
+    packet: Path, manifest: dict[str, Any], cases: list[dict[str, Any]]
+) -> dict[str, Any]:
+    """Build a fresh unrated form from verified cases, never from editable ratings."""
+    return {
         "schema_version": 1,
-        "packet_sha256": file_hash(output / "manifest.json"),
+        "packet_sha256": file_hash(packet / "manifest.json"),
         "rubric_sha256": manifest["files"]["rubric.md"],
         "reviewer_id": "",
         "kind": "human",
@@ -297,5 +306,3 @@ def prepare_packet(
             for c in cases
         ],
     }
-    atomic_write(output / "review_template.json", canonical(template))
-    return manifest
