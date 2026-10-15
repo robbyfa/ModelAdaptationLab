@@ -25,8 +25,12 @@ See `phase3.md`; 82 CPU-only tests pass. Final holdout access remains sealed.
 **Phase 4 training executed locally:** real three-epoch rank-8 MPS fitting with MLflow,
 loss curves, and validation-selected adapter checkpoint. See `phase4.md`.
 
-**Next concrete step:** milestone two in `milestones.md`: build and validate the quality
-evaluator on development data. Keep the final holdout sealed pending the release procedure.
+**Milestone two implemented and exercised, human validation pending:** versioned rubric,
+source-verified claim/citation reviews, diagnostics, disagreement and missing-value reporting,
+and 60 real development outputs. See `quality-development-v1.md`.
+
+**Next concrete step:** obtain independent human ratings and adjudicate disagreements;
+validate any rubric revision on a separate development sample. Keep the final holdout sealed.
 
 ## Phase roadmap
 

@@ -10,6 +10,10 @@ on Apple M3 Pro MPS: 417 training records, 286 validation records, three epochs.
 loss fell from **1.6336 to 1.3014** at the selected second-epoch checkpoint. This does **not**
 establish answer-quality improvement. The final benchmark remains sealed.
 
+The [quality evaluator](reports/quality-development-v1.md) now has a versioned rubric,
+evidence checks, and a 60-output development review packet. Independent human validation
+is pending; automated similarity is not treated as correctness.
+
 Read the [training results and loss curves](reports/phase4.md),
 [retrieval results](reports/phase3.md), and [research milestones](reports/milestones.md).
 
@@ -67,6 +71,7 @@ uv run ruff format --check .
 uv run mypy
 ```
 
-**Next:** validate the quality evaluator on development data, then freeze and execute the
+**Next:** independently rate and adjudicate the development review packet, then freeze the
+validated evaluator before executing the
 five-way benchmark and predeclared ablations. Portfolio publication waits for measured
 findings and an evidence-based conclusion.

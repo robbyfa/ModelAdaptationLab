@@ -86,6 +86,47 @@ def parser() -> argparse.ArgumentParser:
                 help="Explicit QA-independent smoke subset; never a primary index",
             )
             cmd.add_argument("--local-files-only", action="store_true")
+    quality = commands.add_parser("quality", help="Development-only quality measurement and review")
+    qa = quality.add_subparsers(dest="quality_action", required=True)
+    prepare = qa.add_parser(
+        "prepare", help="Build a blinded packet from five unchanged validation strategies"
+    )
+    prepare.add_argument("--runs", type=Path, nargs="+", required=True)
+    prepare.add_argument("--output-dir", type=Path, required=True)
+    prepare.add_argument("--config", type=Path, default=Path("configs/quality-v1.yaml"))
+    prepare.add_argument("--rubric", type=Path, default=Path("reports/quality-rubric-v1.md"))
+    score = qa.add_parser(
+        "score", help="Validate human/estimate ratings and report coverage/agreement"
+    )
+    score.add_argument("--packet", type=Path, required=True)
+    score.add_argument("--reviews", type=Path, nargs="*", default=[])
+    score.add_argument("--output", type=Path, required=True)
+    score.add_argument("--semantic", type=Path, help="Optional frozen semantic diagnostics")
+    for cmd in (prepare, score):
+        cmd.add_argument(
+            "--manifests-dir", type=Path, default=Path("data/manifests/techqa-internal-v1")
+        )
+        cmd.add_argument(
+            "--processed-dir", type=Path, default=Path("data/processed/techqa-internal-v1")
+        )
+    semantic = qa.add_parser(
+        "semantic", help="Pinned similarity diagnostics; no correctness threshold"
+    )
+    semantic.add_argument("--packet", type=Path, required=True)
+    semantic.add_argument("--output", type=Path, required=True)
+    semantic.add_argument("--cache-dir", type=Path, default=Path("outputs/model-cache"))
+    semantic.add_argument("--device", choices=["cpu", "mps", "cuda"], default="cpu")
+    semantic.add_argument("--retrieval-config", type=Path, default=Path("configs/retrieval.yaml"))
+    semantic.add_argument("--local-files-only", action="store_true")
+    track = qa.add_parser("track", help="Record this development measurement in local MLflow")
+    track.add_argument("--packet", type=Path, required=True)
+    track.add_argument("--scores", type=Path, required=True)
+    track.add_argument("--semantic", type=Path)
+    track.add_argument("--output", type=Path, required=True)
+    track.add_argument("--tracking-uri", default="sqlite:///outputs/mlflow.db")
+    render = qa.add_parser("render", help="Render an escaped offline review page")
+    render.add_argument("--packet", type=Path, required=True)
+    render.add_argument("--output", type=Path, required=True)
     train = commands.add_parser("train", help="Fit real LoRA on guarded training data")
     train.add_argument("--config", type=Path, default=Path("configs/training.yaml"))
     train.add_argument("--model-config", type=Path, default=Path("configs/model.yaml"))
@@ -130,6 +171,63 @@ def parser() -> argparse.ArgumentParser:
 def main(argv: list[str] | None = None) -> int:
     args = parser().parse_args(argv)
     try:
+        if args.command == "quality":
+            if args.quality_action == "prepare":
+                from model_adaptation_lab.evaluation.quality.packet import prepare_packet
+
+                prepare_packet(
+                    runs=args.runs,
+                    manifests=args.manifests_dir,
+                    processed=args.processed_dir,
+                    output=args.output_dir,
+                    config_path=args.config,
+                    rubric_path=args.rubric,
+                )
+                print(f"Review packet created: {args.output_dir}; human validation pending")
+            elif args.quality_action == "score":
+                from model_adaptation_lab.evaluation.quality.review import score_reviews
+
+                result = score_reviews(
+                    packet=args.packet,
+                    reviews=args.reviews,
+                    manifests=args.manifests_dir,
+                    processed=args.processed_dir,
+                    output=args.output,
+                    semantic_path=args.semantic,
+                )
+                print(
+                    f"Review coverage: {result['human_review_coverage']}; "
+                    f"{result['measurement_validity']}"
+                )
+            elif args.quality_action == "track":
+                from model_adaptation_lab.evaluation.quality.tracking import track_quality
+
+                result = track_quality(
+                    packet=args.packet,
+                    scores=args.scores,
+                    output=args.output,
+                    tracking_uri=args.tracking_uri,
+                    semantic=args.semantic,
+                )
+                print(f"Measurement tracked: {result['mlflow_run_id']}; validity remains explicit")
+            elif args.quality_action == "semantic":
+                from model_adaptation_lab.evaluation.quality.semantic import semantic_diagnostics
+
+                semantic_diagnostics(
+                    packet=args.packet,
+                    output=args.output,
+                    cache=args.cache_dir,
+                    device=args.device,
+                    retrieval_config=args.retrieval_config,
+                    local_files_only=args.local_files_only,
+                )
+                print(f"Uncalibrated semantic diagnostics saved: {args.output}")
+            else:
+                from model_adaptation_lab.evaluation.quality.render import render_packet
+
+                render_packet(args.packet, args.output)
+                print(f"Offline review page: {args.output}")
+            return 0
         if args.command == "train":
             from model_adaptation_lab.models.lora import train_lora
 
