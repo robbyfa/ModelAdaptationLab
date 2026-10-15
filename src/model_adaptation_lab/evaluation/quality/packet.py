@@ -51,7 +51,8 @@ def validate_quality_config(config: dict[str, Any]) -> None:
 
 def read_rows(path: Path) -> list[dict[str, Any]]:
     try:
-        rows = [json.loads(line) for line in path.read_text().splitlines()]
+        with path.open(encoding="utf-8") as stream:
+            rows = [json.loads(line) for line in stream]
         if not all(isinstance(row, dict) for row in rows):
             raise ValueError("Expected JSON objects")
         return rows

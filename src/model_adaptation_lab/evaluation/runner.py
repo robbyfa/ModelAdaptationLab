@@ -84,6 +84,8 @@ def capture_environment() -> dict[str, Any]:
 def snapshot_code(output: Path) -> dict[str, str]:
     """Preserve code/config bytes for dirty development runs, without any dataset text."""
     files = sorted(Path("src/model_adaptation_lab").rglob("*.py"))
+    files += sorted(Path("src/model_adaptation_lab/evaluation/quality").glob("*.js"))
+    files += sorted(Path("src/model_adaptation_lab/evaluation/quality").glob("*.html"))
     files += sorted(Path("configs").glob("*.yaml"))
     files += [p for p in (Path("pyproject.toml"), Path("uv.lock")) if p.exists()]
     hashes = {}

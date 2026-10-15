@@ -13,7 +13,10 @@ from model_adaptation_lab.io import LabError, atomic_write, canonical, file_hash
 
 GUIDE = """# Independent development review
 
-Read rubric.md and review.html. Copy review_template.json to ratings.json before editing.
+Open review.html in a browser and read rubric.md. Enter your own reviewer ID.
+Use the offline form to split claims, select evidence quotes, and mark responses complete.
+Download draft backups regularly; export completed ratings as ratings.json.
+The JSON template remains available as an optional manual fallback.
 Set your reviewer ID and explicitly declare whether you worked independently. The initial
 independence value is false; change it only if true. No ratings have been supplied for you.
 Review all cases without seeing strategy labels, similarity scores or another person's ratings.
