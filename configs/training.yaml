@@ -1,0 +1,21 @@
+schema_version: 1
+format: question_only_v1
+lora:
+  rank: 8
+  alpha: 16
+  dropout: 0.05
+  target_modules: auto
+training:
+  epochs: 3
+  learning_rate: 0.0002
+  batch_size: 2
+  gradient_accumulation_steps: 8
+  max_seq_length: 1024
+  seed: 42
+  gradient_checkpointing: true
+  early_stopping_patience: 2
+  overflow_policy: exclude_and_report
+  quantization: none
+tracking:
+  uri: sqlite:///outputs/mlflow.db
+  experiment: model-adaptation-lab

@@ -1,0 +1,13 @@
+schema_version: 1
+rubric_version: answer-quality-v1
+scope: validation_only
+seed: 42
+required_strategies: [base, prompt, rag, lora, lora-rag]
+minimum_reviewed_questions_per_answerability: 6
+minimum_independent_human_reviewers: 2
+correctness_scale: [0, 1, 2, 3]
+semantic_model: sentence-transformers/all-MiniLM-L6-v2
+semantic_revision: 1110a243fdf4706b3f48f1d95db1a4f5529b4d41
+semantic_max_tokens: 256
+semantic_overflow: unavailable
+semantic_interpretation: diagnostic_not_correctness

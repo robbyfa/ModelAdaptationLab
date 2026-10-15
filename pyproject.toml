@@ -1,0 +1,36 @@
+[build-system]
+requires = ["hatchling>=1.27,<2"]
+build-backend = "hatchling.build"
+
+[project]
+name = "model-adaptation-lab"
+version = "0.1.0"
+description = "Reproducible TechQA adaptation experiments"
+requires-python = ">=3.11"
+dependencies = ["PyYAML>=6.0.2,<7"]
+
+[project.optional-dependencies]
+inference = ["torch>=2.6,<3", "transformers>=4.57.1,<5"]
+retrieval = ["torch>=2.6,<3", "transformers>=4.57.1,<5", "numpy>=1.26,<3", "faiss-cpu>=1.10,<2"]
+
+training = ["torch>=2.6,<3", "transformers>=4.57.1,<5", "peft>=0.17,<0.19", "accelerate>=1.10,<2", "datasets>=4,<5", "mlflow>=3,<4", "matplotlib>=3.10,<4"]
+
+[project.scripts]
+model-lab = "model_adaptation_lab.cli:main"
+
+[dependency-groups]
+dev = ["pytest>=8.3,<9", "ruff>=0.11,<1", "mypy>=1.15,<2", "types-PyYAML>=6.0", "numpy>=1.26,<3", "faiss-cpu>=1.10,<2"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP"]
+
+[tool.mypy]
+python_version = "3.11"
+strict = true
+files = ["src"]

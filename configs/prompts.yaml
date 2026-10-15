@@ -1,0 +1,15 @@
+schema_version: 1
+base_version: zero-shot-v1
+few_shot_version: few-shot-v1-candidate
+selection_status: predefined_candidate_not_validation_optimized
+system: >-
+  Answer the technical support question accurately and concisely.
+  Give actionable steps when appropriate. Do not invent product behavior or commands.
+  If you cannot answer reliably, respond exactly:
+  I don't have enough information to answer this question.
+abstention: I don't have enough information to answer this question.
+demonstrations:
+  answerable: 2
+  unanswerable: 1
+  max_characters: 1800
+  seed: 42

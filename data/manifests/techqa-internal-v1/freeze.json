@@ -1,0 +1,22 @@
+{
+  "artifacts": {
+    "corpus.json": "2071a4132d4b10019b96b9f26c11d69cd7de30fabacbe11003f7fd14c6031da2",
+    "decisions.json": "fc9e8f618bfc1fc8149c5f34fce04ee8bdb28aff1bab303c52d7211b67c41e8c",
+    "protocol.json": "7093f606af25f2560a5e3300c37b4330201afad34c2f7b2322c3e3389dd0e10c",
+    "summary.json": "2005f42515b66b9fb6e9ec30c7fcd4d5fc541767500a1ee77c47ce14fc00b2f3"
+  },
+  "dataset_config_sha256": "a93b2fe65a44aa564a47384da14a01693b5fab8fe1ee95b132386068d82e73be",
+  "experimental_use_blockers": [],
+  "experimental_use_ready": true,
+  "files": {
+    "test.jsonl": "d251d9be6fc6c515df69b28872928ae7b774bbdf5aef92b830913eb9728f25c0",
+    "train.jsonl": "19c3fc982fae6551e32ef7400b79887ee4c8086fadb78f80484b1a1014109717",
+    "validation.jsonl": "cd7fe2acd4d242a98f5cd59eb956ef4ed266f54ce8080730ab84ed656f701e5d"
+  },
+  "final_test_access": "sealed_until_phase5",
+  "final_test_ready": true,
+  "protocol_id": "techqa-internal-v1",
+  "schema_version": 2,
+  "source_freeze_sha256": "ed6b76f668acb9bfbf6757908619f36321700c202b468db23acd36db4b5277f0",
+  "test_status": "reserved_audit_exposed_internal_holdout"
+}
